@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 aes = "0.8.4"
 cfb8 = "0.8.1"
+hematite-nbt = "0.5.2"
 rand = "0.8"
 rsa = "0.9.8"
 rsa-der = "0.3.0"

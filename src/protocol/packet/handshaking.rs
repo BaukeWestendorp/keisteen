@@ -24,7 +24,7 @@ impl TryFrom<RawPacket> for SHandshakingPacket {
             0x00 => Ok(Self::Handshake {
                 protocol_version: packet.data.consume_varint()?,
                 server_address: packet.data.consume_string(255)?,
-                server_port: packet.data.consume_ushort()?,
+                server_port: packet.data.consume_u16()?,
                 intent: match packet.data.consume_varint()?.raw() {
                     1 => ConnectionState::Status,
                     2 => ConnectionState::Login,

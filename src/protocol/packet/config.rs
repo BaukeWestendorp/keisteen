@@ -1,5 +1,5 @@
 use crate::error::CraftError;
-use crate::server::packet::PacketData;
+use crate::protocol::packet::PacketData;
 use crate::types::{Identifier, VarInt};
 
 use super::RawPacket;

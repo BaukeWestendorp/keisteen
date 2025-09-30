@@ -1,15 +1,13 @@
 use uuid::Uuid;
 
 use crate::error::CraftError;
-use crate::types::{Identifier, JsonTextComponent, VarInt};
+use crate::types::{Identifier, VarInt};
 
 use super::{PacketData, RawPacket};
 
 #[derive(Debug)]
 pub enum CLoginPacket {
-    Disconnected {
-        reason: JsonTextComponent,
-    },
+    Disconnected, // TODO,
     EncryptionRequest {
         server_id: String,
         public_key: Vec<u8>,
@@ -48,7 +46,7 @@ impl From<CLoginPacket> for RawPacket {
                 packet_id: VarInt::new(0x01),
                 data: {
                     let mut data = PacketData::new();
-                    data.write_string(server_id, 20);
+                    data.write_string(&server_id, 20);
                     data.write_prefixed_byte_array(public_key);
                     data.write_prefixed_byte_array(verify_token);
                     data.write_bool(should_authenticate);
@@ -60,7 +58,7 @@ impl From<CLoginPacket> for RawPacket {
                 data: {
                     let mut data = PacketData::new();
                     data.write_uuid(uuid);
-                    data.write_string(username, 16);
+                    data.write_string(&username, 16);
                     data.write_prefixed_byte_array(Vec::new()); // TODO: Write properties.
                     data
                 },

@@ -3,9 +3,8 @@ use std::net::{TcpListener, ToSocketAddrs};
 
 use connection::Connection;
 
-mod connection;
+pub mod connection;
 mod crypt;
-mod packet;
 
 pub struct Server {}
 

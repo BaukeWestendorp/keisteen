@@ -3,16 +3,18 @@ use uuid::Uuid;
 use std::io::{self};
 
 use crate::error::CraftError;
-use crate::types::{Identifier, VarInt};
+use crate::types::{Identifier, Position, VarInt};
 
 mod config;
 mod handshaking;
 mod login;
+mod play;
 mod status;
 
 pub use config::*;
 pub use handshaking::*;
 pub use login::*;
+pub use play::*;
 pub use status::*;
 
 #[derive(Debug)]
@@ -56,6 +58,10 @@ impl PacketData {
         }
     }
 
+    pub fn write_u8(&mut self, value: u8) {
+        self.bytes.push(value);
+    }
+
     pub fn consume_u8(&mut self) -> Result<u8, CraftError> {
         if self.bytes.is_empty() {
             return Err(CraftError::UnexpectedEof);
@@ -70,7 +76,11 @@ impl PacketData {
         Ok(byte as i8)
     }
 
-    pub fn consume_ushort(&mut self) -> Result<u16, CraftError> {
+    pub fn write_i8(&mut self, value: i8) {
+        self.bytes.push(value as u8);
+    }
+
+    pub fn consume_u16(&mut self) -> Result<u16, CraftError> {
         if self.bytes.len() < 2 {
             return Err(CraftError::UnexpectedEof);
         }
@@ -82,11 +92,15 @@ impl PacketData {
         Ok(value)
     }
 
-    pub fn write_long(&mut self, value: i64) {
+    pub fn write_i32(&mut self, value: i32) {
         self.bytes.extend(value.to_be_bytes());
     }
 
-    pub fn consume_long(&mut self) -> Result<i64, CraftError> {
+    pub fn write_i64(&mut self, value: i64) {
+        self.bytes.extend(value.to_be_bytes());
+    }
+
+    pub fn consume_i64(&mut self) -> Result<i64, CraftError> {
         if self.bytes.len() < 8 {
             return Err(CraftError::UnexpectedEof);
         }
@@ -112,6 +126,10 @@ impl PacketData {
         string.parse()
     }
 
+    pub fn write_identifier(&mut self, identifier: &Identifier) {
+        self.write_string(&identifier.to_string(), 32767);
+    }
+
     pub fn write_varint(&mut self, value: VarInt) {
         self.bytes.extend(value.to_bytes());
     }
@@ -123,9 +141,14 @@ impl PacketData {
         Ok(result)
     }
 
-    pub fn write_string(&mut self, value: String, max_len: usize) {
+    pub fn write_position(&mut self, position: Position) {
+        self.write_i64(position.into());
+    }
+
+    pub fn write_string(&mut self, value: &str, max_len: usize) {
         let truncated_value = if value.len() > max_len {
-            value.chars().take(max_len).collect::<String>()
+            let end_index = value.char_indices().nth(max_len).map_or(value.len(), |(idx, _)| idx);
+            &value[..end_index]
         } else {
             value
         };
@@ -175,6 +198,12 @@ impl PacketData {
         self.bytes.extend(bytes);
     }
 
+    pub fn write_identifier_array(&mut self, identifiers: Vec<Identifier>) {
+        for identifier in identifiers {
+            self.write_identifier(&identifier);
+        }
+    }
+
     pub fn consume_byte_array(&mut self, len: usize) -> Result<Vec<u8>, CraftError> {
         if self.bytes.len() < len {
             return Err(CraftError::UnexpectedEof);
@@ -194,6 +223,11 @@ impl PacketData {
         let len = self.consume_varint()?;
         let bytes = self.consume_byte_array(len.raw() as usize)?;
         Ok(bytes)
+    }
+
+    pub fn write_prefixed_identifier_array(&mut self, identifiers: Vec<Identifier>) {
+        self.write_varint(VarInt::new(identifiers.len() as i32));
+        self.write_identifier_array(identifiers);
     }
 }
 
