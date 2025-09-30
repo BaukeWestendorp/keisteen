@@ -27,4 +27,6 @@ pub enum CraftError {
 
     #[error("Authentication failed")]
     AuthenticationFailed,
+    #[error("Encryption mismatch")]
+    EncryptionMismatch,
 }

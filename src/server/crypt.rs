@@ -13,6 +13,20 @@ impl<W: io::Write> EncryptionStream<W> {
         Self::Unencrypted(Some(writer))
     }
 
+    pub fn writer(&self) -> &W {
+        match self {
+            Self::Unencrypted(writer) => writer.as_ref().unwrap(),
+            Self::Encrypted { writer, .. } => writer,
+        }
+    }
+
+    fn writer_mut(&mut self) -> &mut W {
+        match self {
+            Self::Unencrypted(writer) => writer.as_mut().unwrap(),
+            Self::Encrypted { writer, .. } => writer,
+        }
+    }
+
     pub fn enable_encryption(&mut self, shared_secret: &[u8]) {
         match self {
             EncryptionStream::Unencrypted(writer) => {
@@ -21,13 +35,6 @@ impl<W: io::Write> EncryptionStream<W> {
                 *self = Self::Encrypted { cipher, writer: writer.take().unwrap() }
             }
             EncryptionStream::Encrypted { .. } => {}
-        }
-    }
-
-    fn writer_mut(&mut self) -> &mut W {
-        match self {
-            Self::Unencrypted(writer) => writer.as_mut().unwrap(),
-            Self::Encrypted { writer, .. } => writer,
         }
     }
 }

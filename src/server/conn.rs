@@ -1,9 +1,8 @@
 use std::io::{self, Read, Write};
-use std::net::TcpStream;
+use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::thread;
 
 use rsa::Pkcs1v15Encrypt;
-use rsa::traits::PublicKeyParts;
 use uuid::Uuid;
 
 use crate::error::CraftError;
@@ -13,14 +12,41 @@ use crate::protocol::packet::{
     CConfigurationPacket, CLoginPacket, CPlayPacket, CStatusPacket, PacketData, RawPacket,
     SConfigurationPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
 };
+use crate::server::ServerHandle;
 use crate::types::{Identifier, VarInt};
 
-pub struct Connection {
-    state: ConnectionState,
+pub struct ConnectionManager {
+    server: ServerHandle,
+}
 
-    public_key_der: Vec<u8>,
-    private_key: rsa::RsaPrivateKey,
-    verify_token: [u8; 4],
+impl ConnectionManager {
+    pub fn new(server: ServerHandle) -> Self {
+        Self { server }
+    }
+
+    pub fn bind<A: ToSocketAddrs>(self, addr: A) -> Result<(), CraftError> {
+        let listener = TcpListener::bind(addr)?;
+        tracing::info!("started listening on {}", listener.local_addr().unwrap());
+
+        for stream in listener.incoming() {
+            match stream {
+                Ok(stream) => {
+                    Connection::new(stream, self.server.clone())?.spawn();
+                }
+                Err(err) => {
+                    tracing::error!("failed to accept incoming connection: {err}")
+                }
+            }
+        }
+
+        Ok(())
+    }
+}
+
+pub struct Connection {
+    server: ServerHandle,
+
+    state: ConnectionState,
 
     writer: EncryptionStream<TcpStream>,
     reader: DecryptionStream<TcpStream>,
@@ -30,43 +56,37 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn spawn(stream: TcpStream) {
+    pub fn new(stream: TcpStream, server: ServerHandle) -> Result<Self, CraftError> {
+        Ok(Self {
+            server,
+
+            state: ConnectionState::Handshaking,
+
+            writer: EncryptionStream::new(stream.try_clone()?),
+            reader: DecryptionStream::new(stream),
+
+            username: "".to_string(),
+            uuid: Uuid::default(),
+        })
+    }
+
+    pub fn spawn(mut self) {
+        let peer_address = self
+            .writer
+            .writer()
+            .peer_addr()
+            .map(|a| a.to_string())
+            .unwrap_or("<unknown peer address>".to_string());
+
         thread::Builder::new()
-            .name("connection".to_string())
+            .name(format!("connection [{}]", peer_address))
             .spawn::<_, Result<(), CraftError>>(move || {
-                tracing::info!("new connection: {}", {
-                    stream
-                        .peer_addr()
-                        .map(|a| a.to_string())
-                        .unwrap_or("<unknown peer address>".to_string())
-                });
-
-                let mut rng = rand::thread_rng();
-                let private_key =
-                    rsa::RsaPrivateKey::new(&mut rng, 1024).expect("failed to generate a key");
-
-                let mut this = Self {
-                    state: ConnectionState::Handshaking,
-
-                    // TODO: Properly implement encryption
-                    public_key_der: rsa_der::public_key_to_der(
-                        &private_key.n().to_bytes_be(),
-                        &private_key.e().to_bytes_be(),
-                    ),
-                    private_key,
-                    verify_token: rand::random(),
-
-                    writer: EncryptionStream::new(stream.try_clone()?),
-                    reader: DecryptionStream::new(stream),
-
-                    username: "".to_string(),
-                    uuid: Uuid::default(),
-                };
+                tracing::info!("new connection: {}", peer_address);
 
                 loop {
-                    tracing::trace!("waiting for next packet in {:?} state...", this.state);
-                    let packet = this.read_raw_packet()?;
-                    this.handle_raw_packet(packet)?;
+                    tracing::trace!("waiting for next packet in {:?} state...", self.state);
+                    let packet = self.read_raw_packet()?;
+                    self.handle_raw_packet(packet)?;
                 }
             })
             .expect("should create thread");
@@ -82,16 +102,20 @@ impl Connection {
                 let packet = SStatusPacket::try_from(packet)?;
                 self.handle_status_packet(packet)?;
             }
+            ConnectionState::Transfer => {
+                todo!();
+            }
             ConnectionState::Login => {
                 let packet = SLoginPacket::try_from(packet)?;
                 self.handle_login_packet(packet)?;
             }
-            ConnectionState::Transfer => todo!(),
             ConnectionState::Configuration => {
                 let packet = SConfigurationPacket::try_from(packet)?;
                 self.handle_configuration_packet(packet)?
             }
-            ConnectionState::Play => todo!(),
+            ConnectionState::Play => {
+                todo!();
+            }
         }
 
         Ok(())
@@ -130,22 +154,19 @@ impl Connection {
                 self.username = name;
                 self.uuid = player_uuid;
 
+                let public_key = self.server.read().public_key_der.to_vec();
+                let verify_token = self.server.read().verify_token.to_vec();
                 self.write_raw_packet(CLoginPacket::EncryptionRequest {
                     server_id: "".to_string(),
-                    public_key: self.public_key_der.clone(),
-                    verify_token: self.verify_token.to_vec(),
+                    public_key,
+                    verify_token,
                     // TODO:
                     should_authenticate: false,
                 })?;
             }
             SLoginPacket::EncryptionResponse { shared_secret, verify_token } => {
-                let shared_secret =
-                    self.private_key.decrypt(Pkcs1v15Encrypt::default(), &shared_secret).unwrap();
-                let verify_token =
-                    self.private_key.decrypt(Pkcs1v15Encrypt::default(), &verify_token).unwrap();
-
-                if verify_token != self.verify_token {
-                    return Err(CraftError::AuthenticationFailed);
+                if !self.server.read().verify_encryption_response(&verify_token) {
+                    return Err(CraftError::EncryptionMismatch);
                 }
 
                 self.enable_encryption(&shared_secret)?;
@@ -227,6 +248,10 @@ impl Connection {
     }
 
     fn enable_encryption(&mut self, shared_secret: &[u8]) -> io::Result<()> {
+        let private_key = &self.server.read().private_key;
+        let shared_secret =
+            private_key.decrypt(Pkcs1v15Encrypt::default(), &shared_secret).unwrap();
+
         self.writer.enable_encryption(&shared_secret);
         self.reader.enable_encryption(&shared_secret);
         Ok(())

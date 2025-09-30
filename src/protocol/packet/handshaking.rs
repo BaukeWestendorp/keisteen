@@ -1,5 +1,5 @@
 use crate::error::CraftError;
-use crate::server::connection::ConnectionState;
+use crate::server::conn::ConnectionState;
 use crate::types::VarInt;
 
 use super::RawPacket;
