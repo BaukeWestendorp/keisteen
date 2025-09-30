@@ -1,16 +1,19 @@
+use uuid::Uuid;
+
 use std::io::{self};
 
 use crate::error::CraftError;
-use crate::types::VarInt;
+use crate::types::{Identifier, VarInt};
 
+mod config;
 mod handshaking;
 mod login;
 mod status;
 
+pub use config::*;
 pub use handshaking::*;
 pub use login::*;
 pub use status::*;
-use uuid::Uuid;
 
 #[derive(Debug)]
 pub struct RawPacket {
@@ -38,11 +41,33 @@ impl PacketData {
         &self.bytes
     }
 
+    pub fn consume_bool(&mut self) -> Result<bool, CraftError> {
+        match self.consume_u8()? {
+            0x00 => Ok(false),
+            0x01 => Ok(true),
+            byte => Err(CraftError::InvalidBool(byte)),
+        }
+    }
+
     pub fn write_bool(&mut self, bool: bool) {
         match bool {
             false => self.bytes.push(0x00),
             true => self.bytes.push(0x01),
         }
+    }
+
+    pub fn consume_u8(&mut self) -> Result<u8, CraftError> {
+        if self.bytes.is_empty() {
+            return Err(CraftError::UnexpectedEof);
+        }
+
+        let value = self.bytes.remove(0);
+        Ok(value)
+    }
+
+    pub fn consume_i8(&mut self) -> Result<i8, CraftError> {
+        let byte = self.consume_u8()?;
+        Ok(byte as i8)
     }
 
     pub fn consume_ushort(&mut self) -> Result<u16, CraftError> {
@@ -80,6 +105,11 @@ impl PacketData {
         self.bytes.drain(0..8);
 
         Ok(value)
+    }
+
+    pub fn consume_identifier(&mut self) -> Result<Identifier, CraftError> {
+        let string = self.consume_string(32767)?;
+        string.parse()
     }
 
     pub fn write_varint(&mut self, value: VarInt) {

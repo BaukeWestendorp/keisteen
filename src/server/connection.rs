@@ -11,7 +11,8 @@ use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
 use super::packet::CStatusPacket;
 use crate::server::packet::{
-    CLoginPacket, PacketData, RawPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
+    CConfigurationPacket, CLoginPacket, PacketData, RawPacket, SConfigurationPacket,
+    SHandshakingPacket, SLoginPacket, SStatusPacket,
 };
 use crate::types::VarInt;
 
@@ -87,6 +88,11 @@ impl Connection {
                 self.handle_login_packet(packet)?;
             }
             ConnectionState::Transfer => todo!(),
+            ConnectionState::Configuration => {
+                let packet = SConfigurationPacket::try_from(packet)?;
+                self.handle_configuration_packet(packet)?
+            }
+            ConnectionState::Play => todo!(),
         }
 
         Ok(())
@@ -106,7 +112,7 @@ impl Connection {
         match packet {
             SStatusPacket::StatusRequest => {
                 // TODO: Populate this JSON with actual data.
-                let json_response = r#"{"version":{"name":"1.21.8","protocol":772},"players":{"max":20,"online":420,"sample":[]},"description":{"text":"\u00a74!!\u00a76\u00a7l craft\u00a74 !!"},"enforcesSecureChat":false}"#.to_string();
+                let json_response = r#"{"version":{"name":"1.21.8","protocol":772},"players":{"max":20,"online":0,"sample":[]},"description":{"text":"\u00a74!!\u00a76\u00a7l craft\u00a74 !!"},"enforcesSecureChat":false}"#.to_string();
                 self.write_raw_packet(CStatusPacket::StatusResponse { json_response })?;
             }
             SStatusPacket::PingRequest { timestamp } => {
@@ -144,7 +150,7 @@ impl Connection {
                 }
 
                 self.enable_encryption(&shared_secret)?;
-                tracing::debug!("Encryption enabled");
+                tracing::debug!("encryption enabled");
 
                 self.write_raw_packet(CLoginPacket::LoginSuccess {
                     uuid: self.uuid,
@@ -155,6 +161,7 @@ impl Connection {
             SLoginPacket::LoginPluginResponse { .. } => todo!(),
             SLoginPacket::LoginAcknowledged => {
                 self.state = ConnectionState::Configuration;
+                tracing::debug!("login acknowledged");
             }
             SLoginPacket::CookieResponse { .. } => todo!(),
         }
@@ -166,7 +173,27 @@ impl Connection {
         &mut self,
         packet: SConfigurationPacket,
     ) -> Result<(), CraftError> {
-        match packet {}
+        match packet {
+            SConfigurationPacket::ClientInformation { .. } => {
+                // TODO: Do something with client information.
+                self.write_raw_packet(CConfigurationPacket::FinishConfiguration)?;
+            }
+            SConfigurationPacket::CookieResponse => todo!(),
+            SConfigurationPacket::PluginMessage { channel, data } => {
+                tracing::debug!("received channel message on channel '{channel}': {data:?}");
+            }
+            SConfigurationPacket::AcknowledgeFinishConfiguration => {
+                tracing::debug!("configuration acknowledged");
+                self.state = ConnectionState::Play;
+            }
+            SConfigurationPacket::KeepAlive => todo!(),
+            SConfigurationPacket::Pong => todo!(),
+            SConfigurationPacket::ResourcePackResponse => todo!(),
+            SConfigurationPacket::KnownPacks => todo!(),
+            SConfigurationPacket::CustomClickAction => todo!(),
+        }
+
+        Ok(())
     }
 
     fn enable_encryption(&mut self, shared_secret: &[u8]) -> io::Result<()> {
@@ -225,4 +252,5 @@ pub enum ConnectionState {
     Login,
     Transfer,
     Configuration,
+    Play,
 }

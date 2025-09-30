@@ -1,4 +1,4 @@
-use std::{fmt, io, ops};
+use std::{fmt, io, ops, str};
 
 use crate::error::CraftError;
 
@@ -35,6 +35,21 @@ impl Identifier {
         }
 
         Ok(Self { namespace, value })
+    }
+}
+
+impl str::FromStr for Identifier {
+    type Err = CraftError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut split = s.split(':');
+        let Some(namespace) = split.next() else {
+            return Err(CraftError::InvalidNamespace);
+        };
+        let Some(value) = split.next() else {
+            return Err(CraftError::InvalidNamespace);
+        };
+        Self::new(namespace.to_string(), value.to_string())
     }
 }
 
