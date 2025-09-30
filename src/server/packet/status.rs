@@ -16,7 +16,7 @@ impl From<CStatusPacket> for RawPacket {
                 packet_id: VarInt::new(0x00),
                 data: {
                     let mut data = PacketData::new();
-                    data.write_string(json_response);
+                    data.write_string(json_response, 32767);
                     data
                 },
             },

@@ -1,5 +1,48 @@
-use std::io;
-use std::ops;
+use std::{fmt, io, ops};
+
+use crate::error::CraftError;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JsonTextComponent {
+    pub text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Identifier {
+    namespace: String,
+    value: String,
+}
+
+impl Identifier {
+    pub fn new(namespace: String, value: String) -> Result<Self, CraftError> {
+        // Validate namespace
+        if !namespace.chars().all(|c| {
+            c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '-' || c == '_'
+        }) {
+            return Err(CraftError::InvalidIdentifierNamespace(namespace));
+        }
+
+        // Validate value
+        if !value.chars().all(|c| {
+            c.is_ascii_lowercase()
+                || c.is_ascii_digit()
+                || c == '.'
+                || c == '-'
+                || c == '_'
+                || c == '/'
+        }) {
+            return Err(CraftError::InvalidIdentifierValue(value));
+        }
+
+        Ok(Self { namespace, value })
+    }
+}
+
+impl fmt::Display for Identifier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", self.namespace, self.value)
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct VarInt(i32);
@@ -102,5 +145,11 @@ impl ops::Div for VarInt {
 
     fn div(self, other: Self) -> Self {
         Self(self.0 / other.0)
+    }
+}
+
+impl fmt::Display for VarInt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }

@@ -4,6 +4,7 @@ use std::net::{TcpListener, ToSocketAddrs};
 use connection::Connection;
 
 mod connection;
+mod crypt;
 mod packet;
 
 pub struct Server {}
@@ -17,7 +18,7 @@ impl Server {
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
-                    Connection::new(stream).start();
+                    Connection::spawn(stream);
                 }
                 Err(err) => {
                     tracing::error!("failed to accept incoming connection: {err}")

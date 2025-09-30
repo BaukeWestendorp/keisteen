@@ -16,4 +16,11 @@ pub enum CraftError {
     StringTooLong,
     #[error("VarInt is too big")]
     VarIntTooBig,
+
+    #[error("Invalid identifier namespace: {0}")]
+    InvalidIdentifierNamespace(String),
+    #[error("Invalid identifier value: {0}")]
+    InvalidIdentifierValue(String),
+    #[error("Authentication failed")]
+    AuthenticationFailed,
 }
