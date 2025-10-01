@@ -29,7 +29,7 @@ impl ConnectionManager {
 
     pub fn bind<A: ToSocketAddrs>(self, addr: A) -> crate::error::Result<()> {
         let listener = TcpListener::bind(addr)?;
-        tracing::info!("started listening on {}", listener.local_addr().unwrap());
+        log::info!("started listening on {}", listener.local_addr().unwrap());
 
         for stream in listener.incoming() {
             match stream {
@@ -37,7 +37,7 @@ impl ConnectionManager {
                     Connection::new(stream, self.server.clone())?.spawn();
                 }
                 Err(err) => {
-                    tracing::error!("failed to accept incoming connection: {err}")
+                    log::error!("failed to accept incoming connection: {err}")
                 }
             }
         }
@@ -86,7 +86,7 @@ impl Connection {
         thread::Builder::new()
             .name(format!("connection [{}]", peer_address))
             .spawn(move || {
-                tracing::info!("new connection: {}", peer_address);
+                log::info!("new connection: {}", peer_address);
                 self.run().unwrap()
             })
             .expect("should create thread");
@@ -98,7 +98,7 @@ impl Connection {
         }
 
         loop {
-            tracing::trace!("waiting for next packet in {:?} state...", self.state);
+            log::trace!("waiting for next packet in {:?} state...", self.state);
 
             let packet = match self.read_raw_packet() {
                 Ok(packet) => packet,
@@ -162,7 +162,7 @@ impl Connection {
         let packet_id = self.read_varint()?;
         let data_len = (len.raw() as usize).saturating_sub(packet_id.len());
         let data = self.read_bytes(data_len)?;
-        tracing::trace!(
+        log::trace!(
             "received packet with packet id {:#04x} in state {:?}",
             packet_id.raw(),
             self.state
@@ -173,7 +173,7 @@ impl Connection {
     fn write_raw_packet(&mut self, packet: impl Into<RawPacket>) -> crate::error::Result<()> {
         let packet = packet.into();
 
-        tracing::trace!(
+        log::trace!(
             "sending packet with packet id {:#04x} in state {:?}",
             packet.packet_id.raw(),
             self.state
@@ -183,7 +183,7 @@ impl Connection {
         self.write_varint(packet.packet_id)?;
         self.write_bytes(packet.data.bytes())?;
 
-        tracing::trace!("sent packet");
+        log::trace!("sent packet");
         Ok(())
     }
 

@@ -7,11 +7,11 @@ edition = "2024"
 aes = "0.8.4"
 cfb8 = "0.8.1"
 eyre = "0.6.12"
+log = "0.4.28"
+pretty_env_logger = "0.5.0"
 rand = "0.8"
 rsa = "0.9.8"
 rsa-der = "0.3.0"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
-tracing = { version = "0.1.41", features = ["attributes"] }
-tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 uuid = { version = "1.18.1", features = ["v4"] }

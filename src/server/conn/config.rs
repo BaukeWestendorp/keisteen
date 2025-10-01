@@ -14,10 +14,10 @@ impl Connection {
             }
             SConfigurationPacket::CookieResponse => todo!(),
             SConfigurationPacket::PluginMessage { channel, data } => {
-                tracing::debug!("received channel message on channel '{channel}': {data:?}");
+                log::debug!("received channel message on channel '{channel}': {data:?}");
             }
             SConfigurationPacket::AcknowledgeFinishConfiguration => {
-                tracing::debug!("configuration acknowledged");
+                log::debug!("configuration acknowledged");
                 self.state = ConnectionState::Play;
 
                 self.write_raw_packet(CPlayPacket::Login {

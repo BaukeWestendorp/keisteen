@@ -8,7 +8,7 @@ impl Connection {
     pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> crate::error::Result<()> {
         match packet {
             SLoginPacket::LoginStart { name, player_uuid } => {
-                tracing::info!("{} ({}) wants to log in", name, player_uuid);
+                log::info!("{} ({}) wants to log in", name, player_uuid);
 
                 self.player_profile = Some(PlayerProfile::new(player_uuid, name));
 
@@ -24,7 +24,7 @@ impl Connection {
                 }
 
                 self.enable_encryption(&shared_secret)?;
-                tracing::debug!("encryption enabled");
+                log::debug!("encryption enabled");
 
                 let player_profile = self.player_profile();
                 self.write_raw_packet(CLoginPacket::LoginSuccess {
@@ -36,7 +36,7 @@ impl Connection {
             SLoginPacket::LoginPluginResponse { .. } => todo!(),
             SLoginPacket::LoginAcknowledged => {
                 self.state = ConnectionState::Configuration;
-                tracing::debug!("login acknowledged");
+                log::debug!("login acknowledged");
             }
             SLoginPacket::CookieResponse { .. } => todo!(),
         }

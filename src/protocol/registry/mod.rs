@@ -36,7 +36,7 @@ impl Registries {
             damage_type: load_entries(&assets_path),
             dimension_type: load_entries(&assets_path),
         };
-        tracing::debug!("loaded registries from assets");
+        log::debug!("loaded registries from assets");
         registries
     }
 
