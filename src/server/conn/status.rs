@@ -11,6 +11,7 @@ impl Connection {
             }
             SStatusPacket::PingRequest { timestamp } => {
                 self.write_raw_packet(CStatusPacket::PongResponse { timestamp })?;
+                self.close()?;
             }
         }
 

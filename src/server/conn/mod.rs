@@ -1,8 +1,6 @@
 use std::io::{self, Read, Write};
-use std::net::{TcpListener, TcpStream, ToSocketAddrs};
+use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
 use std::thread;
-
-use eyre::{Context, bail};
 
 use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
@@ -47,12 +45,15 @@ impl ConnectionManager {
 }
 
 pub struct Connection {
+    is_running: bool,
+
     server: ServerHandle,
 
     state: ConnectionState,
 
     writer: EncryptionStream<TcpStream>,
     reader: DecryptionStream<TcpStream>,
+    stream: TcpStream,
 
     player_profile: Option<PlayerProfile>,
 }
@@ -60,12 +61,15 @@ pub struct Connection {
 impl Connection {
     pub fn new(stream: TcpStream, server: ServerHandle) -> crate::error::Result<Self> {
         Ok(Self {
+            is_running: false,
+
             server,
 
             state: ConnectionState::Handshaking,
 
             writer: EncryptionStream::new(stream.try_clone()?),
-            reader: DecryptionStream::new(stream),
+            reader: DecryptionStream::new(stream.try_clone()?),
+            stream,
 
             player_profile: None,
         })
@@ -93,30 +97,20 @@ impl Connection {
     }
 
     fn run(mut self) -> eyre::Result<()> {
-        fn is_connection_closed(err: &io::Error) -> bool {
-            matches!(err.kind(), io::ErrorKind::BrokenPipe | io::ErrorKind::ConnectionReset)
-        }
+        self.is_running = true;
 
-        loop {
+        while self.is_running {
             log::trace!("waiting for next packet in {:?} state...", self.state);
-
-            let packet = match self.read_raw_packet() {
-                Ok(packet) => packet,
-                Err(err) if is_connection_closed(&err) => break,
-                Err(err) => bail!(err),
-            };
-
-            if let Err(err) = self.handle_raw_packet(packet) {
-                if let Some(io_err) = err.downcast_ref::<io::Error>() {
-                    if is_connection_closed(io_err) {
-                        break;
-                    }
-                }
-
-                bail!(err);
-            }
+            let packet = self.read_raw_packet()?;
+            self.handle_raw_packet(packet)?;
         }
 
+        Ok(())
+    }
+
+    fn close(&mut self) -> io::Result<()> {
+        self.stream.shutdown(Shutdown::Both)?;
+        self.is_running = false;
         Ok(())
     }
 
