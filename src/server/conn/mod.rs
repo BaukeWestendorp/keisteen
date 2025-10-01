@@ -2,7 +2,6 @@ use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::thread;
 
-use rsa::Pkcs1v15Encrypt;
 use uuid::Uuid;
 
 use crate::error::CraftError;
@@ -126,9 +125,8 @@ impl Connection {
     }
 
     fn enable_encryption(&mut self, shared_secret: &[u8]) -> io::Result<()> {
-        let private_key = &self.server.read().private_key;
         let shared_secret =
-            private_key.decrypt(Pkcs1v15Encrypt::default(), &shared_secret).unwrap();
+            self.server.read().crypt_keys().decrypt(shared_secret).expect("should decrypt secret");
 
         self.writer.enable_encryption(&shared_secret);
         self.reader.enable_encryption(&shared_secret);

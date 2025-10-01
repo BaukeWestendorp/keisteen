@@ -1,7 +1,57 @@
-use std::io::{self};
+use std::io;
 
 use aes::cipher::generic_array::GenericArray;
 use aes::cipher::{BlockDecryptMut, BlockEncryptMut, BlockSizeUser, KeyIvInit};
+use rsa::traits::PublicKeyParts;
+use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
+
+use crate::protocol::packet::CLoginPacket;
+
+pub struct CryptKeys {
+    public_key_der: Vec<u8>,
+    private_key: rsa::RsaPrivateKey,
+
+    verification_token: [u8; 4],
+}
+
+impl CryptKeys {
+    pub fn new() -> Self {
+        let private_key = Self::generate_private_key();
+        Self {
+            public_key_der: rsa_der::public_key_to_der(
+                &private_key.n().to_bytes_be(),
+                &private_key.e().to_bytes_be(),
+            ),
+            private_key,
+
+            verification_token: rand::random(),
+        }
+    }
+
+    pub fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>, rsa::Error> {
+        self.private_key.decrypt(Pkcs1v15Encrypt::default(), &data)
+    }
+
+    pub fn verify_token(&self, token: &[u8]) -> Result<bool, rsa::Error> {
+        let verify_token = self.decrypt(token)?;
+        Ok(verify_token == self.verification_token)
+    }
+
+    fn generate_private_key() -> RsaPrivateKey {
+        let mut rng = rand::thread_rng();
+        rsa::RsaPrivateKey::new(&mut rng, 1024).expect("failed to generate a key")
+    }
+
+    pub fn generate_encryption_request_packet(&self) -> CLoginPacket {
+        CLoginPacket::EncryptionRequest {
+            server_id: "".to_string(),
+            public_key: self.public_key_der.clone(),
+            verify_token: self.verification_token.to_vec(),
+            // TODO:
+            should_authenticate: false,
+        }
+    }
+}
 
 pub enum EncryptionStream<W: io::Write> {
     Unencrypted(Option<W>),

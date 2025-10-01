@@ -11,19 +11,15 @@ impl Connection {
                 self.username = name;
                 self.uuid = player_uuid;
 
-                let public_key = self.server.read().public_key_der.to_vec();
-                let verify_token = self.server.read().verify_token.to_vec();
-                self.write_raw_packet(CLoginPacket::EncryptionRequest {
-                    server_id: "".to_string(),
-                    public_key,
-                    verify_token,
-                    // TODO:
-                    should_authenticate: false,
-                })?;
+                let packet = self.server.read().crypt_keys().generate_encryption_request_packet();
+                self.write_raw_packet(packet)?;
             }
             SLoginPacket::EncryptionResponse { shared_secret, verify_token } => {
-                if !self.server.read().verify_encryption_response(&verify_token) {
-                    return Err(CraftError::EncryptionMismatch);
+                {
+                    let crypt_keys = &self.server.read().crypt_keys;
+                    if !crypt_keys.verify_token(&verify_token).expect("should verify token") {
+                        return Err(CraftError::VerificationTokenMismatch);
+                    }
                 }
 
                 self.enable_encryption(&shared_secret)?;
