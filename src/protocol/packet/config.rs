@@ -1,5 +1,8 @@
+use std::io;
+
 use crate::error::CraftError;
-use crate::protocol::packet::PacketData;
+use crate::nbt::CompoundTag;
+use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolWrite};
 use crate::types::{Identifier, VarInt};
 
 use super::RawPacket;
@@ -13,7 +16,7 @@ pub enum CConfigurationPacket {
     KeepAlive,
     Ping,
     ResetChat,
-    RegistryData,
+    RegistryData { registry_id: Identifier, entries: Vec<RegistryDataEntry> },
     RemoveResourcePack,
     AddResourcePack,
     StoreCookie,
@@ -39,7 +42,15 @@ impl From<CConfigurationPacket> for RawPacket {
             CConfigurationPacket::KeepAlive => todo!(),
             CConfigurationPacket::Ping => todo!(),
             CConfigurationPacket::ResetChat => todo!(),
-            CConfigurationPacket::RegistryData => todo!(),
+            CConfigurationPacket::RegistryData { registry_id, entries } => RawPacket {
+                packet_id: VarInt::new(0x07),
+                data: {
+                    let mut data = PacketData::new();
+                    data.write_all(registry_id);
+                    data.write_all(entries);
+                    data
+                },
+            },
             CConfigurationPacket::RemoveResourcePack => todo!(),
             CConfigurationPacket::AddResourcePack => todo!(),
             CConfigurationPacket::StoreCookie => todo!(),
@@ -87,21 +98,21 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
             0x00 => Ok(Self::ClientInformation {
-                locale: packet.data.consume_string(16)?,
-                view_distance: packet.data.consume_i8()?,
-                chat_mode: packet.data.consume_varint()?,
-                chat_colors: packet.data.consume_bool()?,
-                displayed_skin_parts: packet.data.consume_u8()?,
-                main_hand: packet.data.consume_varint()?,
-                enable_text_filtering: packet.data.consume_bool()?,
-                allow_server_listing: packet.data.consume_bool()?,
-                particle_status: packet.data.consume_varint()?,
+                locale: packet.data.read()?,
+                view_distance: packet.data.read()?,
+                chat_mode: packet.data.read()?,
+                chat_colors: packet.data.read()?,
+                displayed_skin_parts: packet.data.read()?,
+                main_hand: packet.data.read()?,
+                enable_text_filtering: packet.data.read()?,
+                allow_server_listing: packet.data.read()?,
+                particle_status: packet.data.read()?,
             }),
             0x01 => todo!(), // Ok(Self::CookieResponse),
             0x02 => {
-                let channel = packet.data.consume_identifier()?;
+                let channel = packet.data.read()?;
                 let data_len = packet.data.bytes().len();
-                Ok(Self::PluginMessage { channel, data: packet.data.consume_byte_array(data_len)? })
+                Ok(Self::PluginMessage { channel, data: packet.data.read_predefined(data_len)? })
             }
             0x03 => Ok(Self::AcknowledgeFinishConfiguration),
             0x04 => todo!(), // Ok(Self::KeepAlive),
@@ -111,5 +122,19 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
             0x08 => todo!(), // Ok(Self::CustomClickAction),
             _ => return Err(CraftError::InvalidPacket),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct RegistryDataEntry {
+    entry_id: Identifier,
+    data: Option<CompoundTag>,
+}
+
+impl ProtocolWrite for RegistryDataEntry {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> io::Result<()> {
+        self.entry_id.write_all(writer)?;
+        self.data.prefixed_write_all(writer)?;
+        Ok(())
     }
 }

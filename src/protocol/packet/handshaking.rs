@@ -22,10 +22,10 @@ impl TryFrom<RawPacket> for SHandshakingPacket {
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
             0x00 => Ok(Self::Handshake {
-                protocol_version: packet.data.consume_varint()?,
-                server_address: packet.data.consume_string(255)?,
-                server_port: packet.data.consume_u16()?,
-                intent: match packet.data.consume_varint()?.raw() {
+                protocol_version: packet.data.read()?,
+                server_address: packet.data.read()?,
+                server_port: packet.data.read()?,
+                intent: match packet.data.read::<VarInt>()?.raw() {
                     1 => ConnectionState::Status,
                     2 => ConnectionState::Login,
                     3 => ConnectionState::Transfer,

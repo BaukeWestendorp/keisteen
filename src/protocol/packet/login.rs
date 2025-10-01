@@ -46,10 +46,10 @@ impl From<CLoginPacket> for RawPacket {
                 packet_id: VarInt::new(0x01),
                 data: {
                     let mut data = PacketData::new();
-                    data.write_string(&server_id, 20);
-                    data.write_prefixed_byte_array(public_key);
-                    data.write_prefixed_byte_array(verify_token);
-                    data.write_bool(should_authenticate);
+                    data.write_all(server_id);
+                    data.write_all_prefixed(public_key);
+                    data.write_all_prefixed(verify_token);
+                    data.write_all(should_authenticate);
                     data
                 },
             },
@@ -57,9 +57,9 @@ impl From<CLoginPacket> for RawPacket {
                 packet_id: VarInt::new(0x02),
                 data: {
                     let mut data = PacketData::new();
-                    data.write_uuid(uuid);
-                    data.write_string(&username, 16);
-                    data.write_prefixed_byte_array(Vec::new()); // TODO: Write properties.
+                    data.write_all(uuid);
+                    data.write_all(username);
+                    data.write_all_prefixed(Vec::<()>::new()); // TODO: Write properties.
                     data
                 },
             },
@@ -85,12 +85,12 @@ impl TryFrom<RawPacket> for SLoginPacket {
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
             0x00 => Ok(SLoginPacket::LoginStart {
-                name: packet.data.consume_string(16)?,
-                player_uuid: packet.data.consume_uuid()?,
+                name: packet.data.read()?,
+                player_uuid: packet.data.read()?,
             }),
             0x01 => Ok(SLoginPacket::EncryptionResponse {
-                shared_secret: packet.data.consume_prefixed_byte_array()?,
-                verify_token: packet.data.consume_prefixed_byte_array()?,
+                shared_secret: packet.data.read_prefixed()?,
+                verify_token: packet.data.read_prefixed()?,
             }),
             0x02 => todo!("LoginPluginResponse"),
             0x03 => Ok(SLoginPacket::LoginAcknowledged),

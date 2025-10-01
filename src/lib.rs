@@ -1,4 +1,5 @@
 pub mod error;
+pub mod nbt;
 pub mod protocol;
 pub mod server;
 pub mod text;

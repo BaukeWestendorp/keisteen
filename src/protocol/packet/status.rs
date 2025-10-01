@@ -16,7 +16,7 @@ impl From<CStatusPacket> for RawPacket {
                 packet_id: VarInt::new(0x00),
                 data: {
                     let mut data = PacketData::new();
-                    data.write_string(&json_response, 32767);
+                    data.write_all(json_response);
                     data
                 },
             },
@@ -24,7 +24,7 @@ impl From<CStatusPacket> for RawPacket {
                 packet_id: VarInt::new(0x01),
                 data: {
                     let mut data = PacketData::new();
-                    data.write_i64(timestamp);
+                    data.write_all(timestamp);
                     data
                 },
             },
@@ -44,7 +44,7 @@ impl TryFrom<RawPacket> for SStatusPacket {
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
             0x00 => Ok(Self::StatusRequest),
-            0x01 => Ok(Self::PingRequest { timestamp: packet.data.consume_i64()? }),
+            0x01 => Ok(Self::PingRequest { timestamp: packet.data.read()? }),
             _ => todo!(),
         }
     }

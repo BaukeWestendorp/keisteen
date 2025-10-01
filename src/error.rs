@@ -12,12 +12,12 @@ pub enum CraftError {
 
     #[error("Invalid UTF-8 encoding")]
     InvalidUtf8,
-    #[error("String is too long")]
-    StringTooLong,
     #[error("VarInt is too big")]
     VarIntTooBig,
     #[error("Invalid boolean byte: {0}")]
     InvalidBool(u8),
+    #[error("Invalid primitive number")]
+    InvalidPrimitiveNumber,
     #[error("Invalid namespace")]
     InvalidNamespace,
     #[error("Invalid identifier namespace: {0}")]
