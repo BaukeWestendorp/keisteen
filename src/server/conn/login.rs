@@ -1,10 +1,11 @@
-use crate::error::CraftError;
+use eyre::bail;
+
 use crate::protocol::packet::{CLoginPacket, SLoginPacket};
 use crate::server::conn::{Connection, ConnectionState};
 use crate::server::player_profile::PlayerProfile;
 
 impl Connection {
-    pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> Result<(), CraftError> {
+    pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> crate::error::Result<()> {
         match packet {
             SLoginPacket::LoginStart { name, player_uuid } => {
                 tracing::info!("{} ({}) wants to log in", name, player_uuid);
@@ -18,7 +19,7 @@ impl Connection {
                 {
                     let crypt_keys = &self.server.read().crypt_keys;
                     if !crypt_keys.verify_token(&verify_token).expect("should verify token") {
-                        return Err(CraftError::VerificationTokenMismatch);
+                        bail!("verification tokens are not the same");
                     }
                 }
 

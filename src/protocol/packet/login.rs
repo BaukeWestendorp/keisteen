@@ -1,6 +1,6 @@
+use eyre::bail;
 use uuid::Uuid;
 
-use crate::error::CraftError;
 use crate::types::{Identifier, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -80,7 +80,7 @@ pub enum SLoginPacket {
 }
 
 impl TryFrom<RawPacket> for SLoginPacket {
-    type Error = CraftError;
+    type Error = crate::error::Error;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
@@ -95,7 +95,7 @@ impl TryFrom<RawPacket> for SLoginPacket {
             0x02 => todo!("LoginPluginResponse"),
             0x03 => Ok(SLoginPacket::LoginAcknowledged),
             0x04 => todo!("CookieResponse"),
-            _ => return Err(CraftError::InvalidPacket),
+            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
     }
 }

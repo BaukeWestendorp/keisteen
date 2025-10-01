@@ -68,7 +68,8 @@ impl VarInt {
 
     pub fn to_writer<W: io::Write>(self, writer: &mut W) -> io::Result<()> {
         let bytes = self.to_bytes();
-        writer.write_all(&bytes)
+        writer.write_all(&bytes)?;
+        Ok(())
     }
 }
 

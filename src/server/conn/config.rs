@@ -1,4 +1,3 @@
-use crate::error::CraftError;
 use crate::protocol::packet::{CConfigurationPacket, CPlayPacket, SConfigurationPacket};
 use crate::server::conn::{Connection, ConnectionState};
 use crate::types::{Identifier, VarInt};
@@ -7,7 +6,7 @@ impl Connection {
     pub fn handle_configuration_packet(
         &mut self,
         packet: SConfigurationPacket,
-    ) -> Result<(), CraftError> {
+    ) -> crate::error::Result<()> {
         match packet {
             SConfigurationPacket::ClientInformation { .. } => {
                 // TODO: Do something with client information.

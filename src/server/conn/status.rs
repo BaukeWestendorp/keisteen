@@ -1,9 +1,8 @@
-use crate::error::CraftError;
 use crate::protocol::packet::{CStatusPacket, SStatusPacket};
 use crate::server::conn::Connection;
 
 impl Connection {
-    pub fn handle_status_packet(&mut self, packet: SStatusPacket) -> Result<(), CraftError> {
+    pub fn handle_status_packet(&mut self, packet: SStatusPacket) -> crate::error::Result<()> {
         match packet {
             SStatusPacket::StatusRequest => {
                 // TODO: Populate this JSON with actual data.

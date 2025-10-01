@@ -1,4 +1,5 @@
-use crate::error::CraftError;
+use eyre::bail;
+
 use crate::server::conn::ConnectionState;
 use crate::types::VarInt;
 
@@ -17,7 +18,7 @@ pub enum SHandshakingPacket {
 }
 
 impl TryFrom<RawPacket> for SHandshakingPacket {
-    type Error = CraftError;
+    type Error = crate::error::Error;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
@@ -29,10 +30,10 @@ impl TryFrom<RawPacket> for SHandshakingPacket {
                     1 => ConnectionState::Status,
                     2 => ConnectionState::Login,
                     3 => ConnectionState::Transfer,
-                    _ => todo!(),
+                    _ => unreachable!(),
                 },
             }),
-            _ => todo!(),
+            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
     }
 }

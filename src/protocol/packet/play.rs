@@ -1,4 +1,3 @@
-use crate::error::CraftError;
 use crate::types::{Identifier, Position, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -101,7 +100,7 @@ pub enum SPlayPacket {
 }
 
 impl TryFrom<RawPacket> for SPlayPacket {
-    type Error = CraftError;
+    type Error = crate::error::Error;
 
     fn try_from(packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {

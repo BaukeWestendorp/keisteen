@@ -1,6 +1,7 @@
 use std::io;
 
-use crate::error::CraftError;
+use eyre::bail;
+
 use crate::nbt::CompoundTag;
 use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolWrite};
 use crate::types::{Identifier, VarInt};
@@ -93,7 +94,7 @@ pub enum SConfigurationPacket {
 }
 
 impl TryFrom<RawPacket> for SConfigurationPacket {
-    type Error = CraftError;
+    type Error = crate::error::Error;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
@@ -120,7 +121,7 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
             0x06 => todo!(), // Ok(Self::ResourcePackResponse),
             0x07 => todo!(), // Ok(Self::KnownPacks),
             0x08 => todo!(), // Ok(Self::CustomClickAction),
-            _ => return Err(CraftError::InvalidPacket),
+            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
     }
 }
@@ -132,7 +133,7 @@ pub struct RegistryDataEntry {
 }
 
 impl ProtocolWrite for RegistryDataEntry {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> io::Result<()> {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
         self.entry_id.write_all(writer)?;
         self.data.prefixed_write_all(writer)?;
         Ok(())

@@ -1,4 +1,5 @@
-use crate::error::CraftError;
+use eyre::bail;
+
 use crate::types::VarInt;
 
 use super::{PacketData, RawPacket};
@@ -39,13 +40,13 @@ pub enum SStatusPacket {
 }
 
 impl TryFrom<RawPacket> for SStatusPacket {
-    type Error = CraftError;
+    type Error = crate::error::Error;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
             0x00 => Ok(Self::StatusRequest),
             0x01 => Ok(Self::PingRequest { timestamp: packet.data.read()? }),
-            _ => todo!(),
+            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
     }
 }

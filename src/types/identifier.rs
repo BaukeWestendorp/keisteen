@@ -1,6 +1,6 @@
 use std::{fmt, str};
 
-use crate::error::CraftError;
+use eyre::{ContextCompat, bail};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Identifier {
@@ -9,7 +9,10 @@ pub struct Identifier {
 }
 
 impl Identifier {
-    pub fn new(namespace: impl Into<String>, value: impl Into<String>) -> Result<Self, CraftError> {
+    pub fn new(
+        namespace: impl Into<String>,
+        value: impl Into<String>,
+    ) -> crate::error::Result<Self> {
         let namespace = namespace.into();
         let value = value.into();
 
@@ -17,7 +20,7 @@ impl Identifier {
         if !namespace.chars().all(|c| {
             c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '-' || c == '_'
         }) {
-            return Err(CraftError::InvalidIdentifierNamespace(namespace));
+            bail!("invalid namespace");
         }
 
         // Validate value
@@ -29,7 +32,7 @@ impl Identifier {
                 || c == '_'
                 || c == '/'
         }) {
-            return Err(CraftError::InvalidIdentifierValue(value));
+            bail!("invalid value");
         }
 
         Ok(Self { namespace, value })
@@ -45,16 +48,12 @@ impl Identifier {
 }
 
 impl str::FromStr for Identifier {
-    type Err = CraftError;
+    type Err = crate::error::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split(':');
-        let Some(namespace) = split.next() else {
-            return Err(CraftError::InvalidNamespace);
-        };
-        let Some(value) = split.next() else {
-            return Err(CraftError::InvalidNamespace);
-        };
+        let namespace = split.next().wrap_err("missing namespace")?;
+        let value = split.next().wrap_err("missing separator")?;
         Self::new(namespace.to_string(), value.to_string())
     }
 }

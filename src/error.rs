@@ -1,32 +1,3 @@
-use std::io;
+pub type Error = eyre::Report;
 
-#[derive(Debug, thiserror::Error)]
-pub enum CraftError {
-    #[error("IO error: {0}")]
-    Io(#[from] io::Error),
-
-    #[error("Could not decode packet")]
-    InvalidPacket,
-    #[error("Unexpected end of file")]
-    UnexpectedEof,
-
-    #[error("Invalid UTF-8 encoding")]
-    InvalidUtf8,
-    #[error("VarInt is too big")]
-    VarIntTooBig,
-    #[error("Invalid boolean byte: {0}")]
-    InvalidBool(u8),
-    #[error("Invalid primitive number")]
-    InvalidPrimitiveNumber,
-    #[error("Invalid namespace")]
-    InvalidNamespace,
-    #[error("Invalid identifier namespace: {0}")]
-    InvalidIdentifierNamespace(String),
-    #[error("Invalid identifier value: {0}")]
-    InvalidIdentifierValue(String),
-
-    #[error("Authentication failed")]
-    AuthenticationFailed,
-    #[error("Verification token mismatch")]
-    VerificationTokenMismatch,
-}
+pub type Result<T> = eyre::Result<T>;
