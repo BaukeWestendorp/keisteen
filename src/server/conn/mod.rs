@@ -2,8 +2,6 @@ use std::io::{self, Read, Write};
 use std::net::{TcpListener, TcpStream, ToSocketAddrs};
 use std::thread;
 
-use uuid::Uuid;
-
 use crate::error::CraftError;
 use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
@@ -11,6 +9,7 @@ use crate::protocol::packet::{
     PacketData, RawPacket, SConfigurationPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
 };
 use crate::server::ServerHandle;
+use crate::server::player_profile::PlayerProfile;
 use crate::types::VarInt;
 
 mod config;
@@ -54,8 +53,7 @@ pub struct Connection {
     writer: EncryptionStream<TcpStream>,
     reader: DecryptionStream<TcpStream>,
 
-    username: String,
-    uuid: Uuid,
+    player_profile: Option<PlayerProfile>,
 }
 
 impl Connection {
@@ -68,9 +66,12 @@ impl Connection {
             writer: EncryptionStream::new(stream.try_clone()?),
             reader: DecryptionStream::new(stream),
 
-            username: "".to_string(),
-            uuid: Uuid::default(),
+            player_profile: None,
         })
+    }
+
+    pub fn player_profile(&self) -> &PlayerProfile {
+        self.player_profile.as_ref().expect("player should have been initialized at login")
     }
 
     pub fn spawn(mut self) {

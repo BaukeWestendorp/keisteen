@@ -1,9 +1,10 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use crate::server::crypt::CryptKeys;
 
 pub mod conn;
 mod crypt;
+mod player_profile;
 
 pub struct Server {
     crypt_keys: CryptKeys,
@@ -27,7 +28,7 @@ impl ServerHandle {
         Self(Arc::new(Mutex::new(server)))
     }
 
-    pub fn read(&self) -> std::sync::MutexGuard<'_, Server> {
+    pub fn read(&self) -> MutexGuard<'_, Server> {
         self.0.lock().expect("Server mutex poisoned")
     }
 }

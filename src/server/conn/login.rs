@@ -1,6 +1,7 @@
 use crate::error::CraftError;
 use crate::protocol::packet::{CLoginPacket, SLoginPacket};
 use crate::server::conn::{Connection, ConnectionState};
+use crate::server::player_profile::PlayerProfile;
 
 impl Connection {
     pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> Result<(), CraftError> {
@@ -8,8 +9,7 @@ impl Connection {
             SLoginPacket::LoginStart { name, player_uuid } => {
                 tracing::info!("{} ({}) wants to log in", name, player_uuid);
 
-                self.username = name;
-                self.uuid = player_uuid;
+                self.player_profile = Some(PlayerProfile::new(player_uuid, name));
 
                 let packet = self.server.read().crypt_keys().generate_encryption_request_packet();
                 self.write_raw_packet(packet)?;
@@ -25,10 +25,11 @@ impl Connection {
                 self.enable_encryption(&shared_secret)?;
                 tracing::debug!("encryption enabled");
 
+                let player_profile = self.player_profile();
                 self.write_raw_packet(CLoginPacket::LoginSuccess {
-                    uuid: self.uuid,
-                    username: self.username.clone(),
-                    properties: (),
+                    uuid: player_profile.uuid().clone(),
+                    username: player_profile.username().to_string(),
+                    properties: player_profile.properties().clone(),
                 })?;
             }
             SLoginPacket::LoginPluginResponse { .. } => todo!(),
