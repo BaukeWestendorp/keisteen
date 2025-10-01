@@ -1,5 +1,6 @@
 use std::sync::{Arc, Mutex, MutexGuard};
 
+use crate::protocol::registry::Registries;
 use crate::server::crypt::CryptKeys;
 
 pub mod conn;
@@ -8,15 +9,20 @@ mod player_profile;
 
 pub struct Server {
     crypt_keys: CryptKeys,
+    registries: Registries,
 }
 
 impl Server {
     pub fn new() -> Self {
-        Self { crypt_keys: CryptKeys::new() }
+        Self { crypt_keys: CryptKeys::new(), registries: Registries::load_from_assets() }
     }
 
     pub fn crypt_keys(&self) -> &CryptKeys {
         &self.crypt_keys
+    }
+
+    pub fn registries(&self) -> &Registries {
+        &self.registries
     }
 }
 
