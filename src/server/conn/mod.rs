@@ -135,16 +135,6 @@ impl Connection {
         Ok(())
     }
 
-    fn write_raw_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
-        tracing::trace!("sending packet...");
-        let packet = packet.into();
-        self.write_var_int(VarInt::new(packet.length() as i32))?;
-        self.write_var_int(packet.packet_id)?;
-        self.write_bytes(packet.data.bytes())?;
-        tracing::trace!("sent packet");
-        Ok(())
-    }
-
     fn read_raw_packet(&mut self) -> io::Result<RawPacket> {
         let len = self.read_var_int()?;
         let packet_id = match len.raw() {
@@ -157,6 +147,16 @@ impl Connection {
         Ok(RawPacket { packet_id, data: PacketData::from(data) })
     }
 
+    fn write_raw_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
+        tracing::trace!("sending packet...");
+        let packet = packet.into();
+        self.write_var_int(VarInt::new(packet.length() as i32))?;
+        self.write_var_int(packet.packet_id)?;
+        self.write_bytes(packet.data.bytes())?;
+        tracing::trace!("sent packet");
+        Ok(())
+    }
+
     fn read_var_int(&mut self) -> io::Result<VarInt> {
         Ok(VarInt::from_reader(&mut self.reader)?)
     }
@@ -166,15 +166,15 @@ impl Connection {
         Ok(())
     }
 
-    fn write_bytes(&mut self, bytes: &[u8]) -> io::Result<()> {
-        self.writer.write_all(bytes)?;
-        Ok(())
-    }
-
     fn read_bytes(&mut self, len: usize) -> io::Result<Vec<u8>> {
         let mut buffer = vec![0u8; len];
         self.reader.read_exact(&mut buffer)?;
         Ok(buffer)
+    }
+
+    fn write_bytes(&mut self, bytes: &[u8]) -> io::Result<()> {
+        self.writer.write_all(bytes)?;
+        Ok(())
     }
 }
 
