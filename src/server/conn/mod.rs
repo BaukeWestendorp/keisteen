@@ -1,20 +1,20 @@
-use std::io::{self, Read, Write};
+use std::io::{self, Cursor, Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
 use std::thread;
 
+use aes::cipher::KeyIvInit;
+use eyre::bail;
+use flate2::read::ZlibDecoder;
+use flate2::write::ZlibEncoder;
+
 use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
-use crate::protocol::packet::{
-    PacketData, RawPacket, SConfigurationPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
-};
+use crate::protocol::packet::{CLoginPacket, PacketData, RawPacket};
 use crate::server::ServerHandle;
 use crate::server::player_profile::PlayerProfile;
 use crate::types::VarInt;
 
-mod config;
-mod handshaking;
-mod login;
-mod status;
+mod packet;
 
 pub struct ConnectionManager {
     server: ServerHandle,
@@ -51,8 +51,8 @@ pub struct Connection {
 
     state: ConnectionState,
 
-    writer: EncryptionStream<TcpStream>,
-    reader: DecryptionStream<TcpStream>,
+    writer: PacketWriter<TcpStream>,
+    reader: PacketReader<TcpStream>,
     stream: TcpStream,
 
     player_profile: Option<PlayerProfile>,
@@ -67,8 +67,8 @@ impl Connection {
 
             state: ConnectionState::Handshaking,
 
-            writer: EncryptionStream::new(stream.try_clone()?),
-            reader: DecryptionStream::new(stream.try_clone()?),
+            writer: PacketWriter::new(stream.try_clone()?),
+            reader: PacketReader::new(stream.try_clone()?),
             stream,
 
             player_profile: None,
@@ -81,8 +81,7 @@ impl Connection {
 
     pub fn spawn(self) {
         let peer_address = self
-            .writer
-            .writer()
+            .stream
             .peer_addr()
             .map(|a| a.to_string())
             .unwrap_or("<no peer address>".to_string());
@@ -101,7 +100,7 @@ impl Connection {
 
         while self.is_running {
             log::trace!("waiting for next packet in {:?} state...", self.state);
-            let packet = self.read_raw_packet()?;
+            let packet = self.read_packet()?;
             self.handle_raw_packet(packet)?;
         }
 
@@ -114,91 +113,44 @@ impl Connection {
         Ok(())
     }
 
-    fn handle_raw_packet(&mut self, packet: RawPacket) -> crate::error::Result<()> {
-        match self.state {
-            ConnectionState::Handshaking => {
-                let packet = SHandshakingPacket::try_from(packet)?;
-                self.handle_handshaking_packet(packet)?;
-            }
-            ConnectionState::Status => {
-                let packet = SStatusPacket::try_from(packet)?;
-                self.handle_status_packet(packet)?;
-            }
-            ConnectionState::Transfer => {
-                todo!();
-            }
-            ConnectionState::Login => {
-                let packet = SLoginPacket::try_from(packet)?;
-                self.handle_login_packet(packet)?;
-            }
-            ConnectionState::Configuration => {
-                let packet = SConfigurationPacket::try_from(packet)?;
-                self.handle_configuration_packet(packet)?;
-            }
-            ConnectionState::Play => {
-                todo!();
-            }
-        }
-
-        Ok(())
-    }
-
-    fn enable_encryption(&mut self, shared_secret: &[u8]) -> io::Result<()> {
+    fn enable_encryption(&mut self, shared_secret: &[u8]) -> crate::error::Result<()> {
         let shared_secret =
             self.server.read().crypt_keys().decrypt(shared_secret).expect("should decrypt secret");
-        self.writer.enable_encryption(&shared_secret);
-        self.reader.enable_encryption(&shared_secret);
+
+        self.writer.enable_encryption(&shared_secret)?;
+        self.reader.enable_encryption(&shared_secret)?;
+
+        log::debug!("encryption enabled");
+
         Ok(())
     }
 
-    fn read_raw_packet(&mut self) -> io::Result<RawPacket> {
-        let len = self.read_varint()?;
-        let packet_id = self.read_varint()?;
-        let data_len = (len.raw() as usize).saturating_sub(packet_id.len());
-        let data = self.read_bytes(data_len)?;
-        log::trace!(
-            "received packet with packet id {:#04x} in state {:?}",
-            packet_id.raw(),
-            self.state
-        );
-        Ok(RawPacket { packet_id, data: PacketData::from(data) })
-    }
+    pub fn enable_compression(&mut self) -> crate::error::Result<()> {
+        // TODO: Implement compression.
 
-    fn write_raw_packet(&mut self, packet: impl Into<RawPacket>) -> crate::error::Result<()> {
-        let packet = packet.into();
+        // // TODO: Add the threshold to the config.
+        // let threshold = 256;
+        // // TODO: Add the level to the config.
+        // let level = 3;
 
-        log::trace!(
-            "sending packet with packet id {:#04x} in state {:?}",
-            packet.packet_id.raw(),
-            self.state
-        );
+        // self.writer.enable_compression(threshold, level)?;
+        // self.reader.enable_compression()?;
 
-        self.write_varint(VarInt::new(packet.length() as i32))?;
-        self.write_varint(packet.packet_id)?;
-        self.write_bytes(packet.data.bytes())?;
+        // self.send_packet(CLoginPacket::SetCompression {
+        //     threshold: VarInt::new(threshold as i32),
+        // })?;
 
-        log::trace!("sent packet");
+        // log::debug!("compression enabled");
+
         Ok(())
     }
 
-    fn read_varint(&mut self) -> io::Result<VarInt> {
-        Ok(VarInt::from_reader(&mut self.reader)?)
+    pub fn send_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
+        self.writer.write_packet(packet)
     }
 
-    fn write_varint(&mut self, value: VarInt) -> io::Result<()> {
-        value.to_writer(&mut self.writer)?;
-        Ok(())
-    }
-
-    fn read_bytes(&mut self, len: usize) -> io::Result<Vec<u8>> {
-        let mut buffer = vec![0u8; len];
-        self.reader.read_exact(&mut buffer)?;
-        Ok(buffer)
-    }
-
-    fn write_bytes(&mut self, bytes: &[u8]) -> io::Result<()> {
-        self.writer.write_all(bytes)?;
-        Ok(())
+    pub fn read_packet(&mut self) -> io::Result<RawPacket> {
+        self.reader.read_packet()
     }
 }
 
@@ -210,4 +162,135 @@ pub enum ConnectionState {
     Transfer,
     Configuration,
     Play,
+}
+
+pub enum PacketWriter<W: io::Write> {
+    Raw(Option<W>),
+    Encrypted(Option<EncryptionStream<W>>),
+    Compressed { writer: EncryptionStream<W>, threshold: u32, level: u32 },
+}
+
+impl<W: io::Write> PacketWriter<W> {
+    pub fn new(writer: W) -> Self {
+        Self::Raw(Some(writer))
+    }
+
+    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> crate::error::Result<()> {
+        let writer = match self {
+            Self::Raw(writer) => writer.take().unwrap(),
+            Self::Encrypted(_) | Self::Compressed { .. } => bail!("encryption already enabled"),
+        };
+
+        let cipher = cfb8::Encryptor::new_from_slices(shared_secret, shared_secret).unwrap();
+        let encryption_stream = EncryptionStream::new(cipher, writer);
+        *self = Self::Encrypted(Some(encryption_stream));
+
+        Ok(())
+    }
+
+    pub fn enable_compression(&mut self, threshold: u32, level: u32) -> crate::error::Result<()> {
+        let writer = match self {
+            Self::Raw(_) => bail!("stream is not encrypted"),
+            Self::Encrypted(writer) => writer.take().unwrap(),
+            Self::Compressed { .. } => bail!("compression already enabled"),
+        };
+
+        *self = Self::Compressed { writer, threshold, level };
+
+        Ok(())
+    }
+
+    pub fn write_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
+        let packet = packet.into();
+
+        match self {
+            PacketWriter::Raw(Some(writer)) => {
+                packet.length().to_writer(writer)?;
+                packet.packet_id.to_writer(writer)?;
+                packet.data.to_writer(writer)?;
+            }
+            PacketWriter::Encrypted(Some(writer)) => {
+                packet.length().to_writer(writer)?;
+                packet.packet_id.to_writer(writer)?;
+                packet.data.to_writer(writer)?;
+            }
+            PacketWriter::Compressed { writer, .. } => {
+                // TODO: Implement compression.
+
+                packet.length().to_writer(writer)?;
+                packet.packet_id.to_writer(writer)?;
+                packet.data.to_writer(writer)?;
+            }
+            _ => unreachable!(),
+        }
+
+        Ok(())
+    }
+}
+
+pub enum PacketReader<R: io::Read> {
+    Raw(Option<R>),
+    Encrypted(Option<DecryptionStream<R>>),
+    Compressed { reader: DecryptionStream<R> },
+}
+
+impl<R: io::Read> PacketReader<R> {
+    pub fn new(reader: R) -> Self {
+        Self::Raw(Some(reader))
+    }
+
+    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> crate::error::Result<()> {
+        let reader = match self {
+            Self::Raw(reader) => reader.take().unwrap(),
+            Self::Encrypted(_) | Self::Compressed { .. } => bail!("encryption already enabled"),
+        };
+
+        let cipher = cfb8::Decryptor::new_from_slices(shared_secret, shared_secret).unwrap();
+        let decryption_stream = DecryptionStream::new(cipher, reader);
+        *self = Self::Encrypted(Some(decryption_stream));
+
+        Ok(())
+    }
+
+    pub fn enable_compression(&mut self) -> crate::error::Result<()> {
+        let reader = match self {
+            Self::Raw(_) => bail!("stream is not encrypted"),
+            Self::Encrypted(reader) => reader.take().unwrap(),
+            Self::Compressed { .. } => bail!("compression already enabled"),
+        };
+
+        *self = Self::Compressed { reader };
+
+        Ok(())
+    }
+
+    pub fn read_packet(&mut self) -> io::Result<RawPacket> {
+        fn read_uncompresed<R: io::Read>(mut reader: R, length: VarInt) -> io::Result<RawPacket> {
+            let packet_id = VarInt::from_reader(&mut reader)?;
+            let data_len = (length.raw() as usize).saturating_sub(packet_id.len());
+            let mut data = vec![0u8; data_len];
+            reader.read_exact(&mut data)?;
+            Ok(RawPacket { packet_id, data: PacketData::from(data) })
+        }
+
+        let packet = match self {
+            PacketReader::Raw(Some(reader)) => {
+                let length = VarInt::from_reader(reader)?;
+                read_uncompresed(reader, length)?
+            }
+            PacketReader::Encrypted(Some(reader)) => {
+                let length = VarInt::from_reader(reader)?;
+                read_uncompresed(reader, length)?
+            }
+            PacketReader::Compressed { reader } => {
+                // TODO: Implement compression.
+
+                let length = VarInt::from_reader(reader)?;
+                read_uncompresed(reader, length)?
+            }
+            _ => unreachable!(),
+        };
+
+        Ok(packet)
+    }
 }

@@ -1,4 +1,4 @@
-use eyre::bail;
+use eyre::{Context, bail};
 
 use crate::protocol::packet::{CLoginPacket, SLoginPacket};
 use crate::server::conn::{Connection, ConnectionState};
@@ -13,7 +13,7 @@ impl Connection {
                 self.player_profile = Some(PlayerProfile::new(player_uuid, name));
 
                 let packet = self.server.read().crypt_keys().generate_encryption_request_packet();
-                self.write_raw_packet(packet)?;
+                self.send_packet(packet)?;
             }
             SLoginPacket::EncryptionResponse { shared_secret, verify_token } => {
                 {
@@ -23,11 +23,12 @@ impl Connection {
                     }
                 }
 
-                self.enable_encryption(&shared_secret)?;
-                log::debug!("encryption enabled");
+                self.enable_encryption(&shared_secret).wrap_err("failed to enable encryption")?;
+
+                self.enable_compression().wrap_err("failed to enable compression")?;
 
                 let player_profile = self.player_profile();
-                self.write_raw_packet(CLoginPacket::LoginSuccess {
+                self.send_packet(CLoginPacket::LoginSuccess {
                     uuid: player_profile.uuid().clone(),
                     username: player_profile.username().to_string(),
                     properties: player_profile.properties().clone(),

@@ -25,8 +25,9 @@ pub struct RawPacket {
 }
 
 impl RawPacket {
-    pub fn length(&self) -> usize {
-        self.data.bytes().len() + self.packet_id.len()
+    pub fn length(&self) -> VarInt {
+        let length = self.packet_id.len() + self.data.bytes().len();
+        VarInt::new(length as i32)
     }
 }
 
@@ -73,6 +74,10 @@ impl PacketData {
         let result = R::read_from_predefined(&mut cursor, info)?;
         self.bytes.drain(..cursor.position() as usize);
         Ok(result)
+    }
+
+    pub fn to_writer<W: io::Write>(&self, mut writer: W) -> io::Result<()> {
+        writer.write_all(&self.bytes)
     }
 }
 

@@ -10,7 +10,7 @@ impl Connection {
         match packet {
             SConfigurationPacket::ClientInformation { .. } => {
                 // TODO: Do something with client information.
-                self.write_raw_packet(CConfigurationPacket::FinishConfiguration)?;
+                self.send_packet(CConfigurationPacket::FinishConfiguration)?;
             }
             SConfigurationPacket::CookieResponse => todo!(),
             SConfigurationPacket::PluginMessage { channel, data } => {
@@ -20,7 +20,7 @@ impl Connection {
                 log::debug!("configuration acknowledged");
                 self.state = ConnectionState::Play;
 
-                self.write_raw_packet(CPlayPacket::Login {
+                self.send_packet(CPlayPacket::Login {
                     entity_id: 1,
                     is_hardcore: false,
                     dimension_names: vec![Identifier::new(

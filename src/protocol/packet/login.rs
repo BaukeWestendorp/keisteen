@@ -63,7 +63,14 @@ impl From<CLoginPacket> for RawPacket {
                     data
                 },
             },
-            CLoginPacket::SetCompression { .. } => todo!(),
+            CLoginPacket::SetCompression { threshold } => RawPacket {
+                packet_id: VarInt::new(0x03),
+                data: {
+                    let mut data = PacketData::new();
+                    data.write_all(threshold);
+                    data
+                },
+            },
             CLoginPacket::LoginPluginRequest { .. } => todo!(),
             CLoginPacket::CookieRequest { .. } => todo!(),
         }

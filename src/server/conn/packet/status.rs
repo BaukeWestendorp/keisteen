@@ -7,10 +7,10 @@ impl Connection {
             SStatusPacket::StatusRequest => {
                 // TODO: Populate this JSON with actual data.
                 let json_response = r#"{"version":{"name":"1.21.8","protocol":772},"players":{"max":20,"online":0,"sample":[]},"description":{"text":"\u00a74!!\u00a76\u00a7l craft\u00a74 !!"},"enforcesSecureChat":false}"#.to_string();
-                self.write_raw_packet(CStatusPacket::StatusResponse { json_response })?;
+                self.send_packet(CStatusPacket::StatusResponse { json_response })?;
             }
             SStatusPacket::PingRequest { timestamp } => {
-                self.write_raw_packet(CStatusPacket::PongResponse { timestamp })?;
+                self.send_packet(CStatusPacket::PongResponse { timestamp })?;
                 self.close()?;
             }
         }
