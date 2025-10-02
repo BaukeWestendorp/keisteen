@@ -11,7 +11,7 @@ use super::RawPacket;
 #[derive(Debug)]
 pub enum CConfigurationPacket {
     CookieRequest,
-    PluginMessage,
+    PluginMessage { channel: Identifier, data: Vec<u8> },
     Disconnected,
     FinishConfiguration,
     KeepAlive,
@@ -35,7 +35,15 @@ impl From<CConfigurationPacket> for RawPacket {
     fn from(packet: CConfigurationPacket) -> Self {
         match packet {
             CConfigurationPacket::CookieRequest => todo!(),
-            CConfigurationPacket::PluginMessage => todo!(),
+            CConfigurationPacket::PluginMessage { channel, data } => RawPacket {
+                packet_id: VarInt::new(0x01),
+                data: {
+                    let mut packet_data = PacketData::new();
+                    packet_data.write_all(channel);
+                    packet_data.write_all(data);
+                    packet_data
+                },
+            },
             CConfigurationPacket::Disconnected => todo!(),
             CConfigurationPacket::FinishConfiguration => {
                 RawPacket { packet_id: VarInt::new(0x03), data: PacketData::new() }

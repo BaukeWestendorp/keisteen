@@ -1,3 +1,5 @@
+pub const BRAND: &str = "Craft";
+
 pub mod error;
 pub mod nbt;
 pub mod protocol;

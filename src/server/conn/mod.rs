@@ -1,15 +1,12 @@
-use std::io::{self, Cursor, Read, Write};
 use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
-use std::thread;
+use std::{io, thread};
 
 use aes::cipher::KeyIvInit;
 use eyre::bail;
-use flate2::read::ZlibDecoder;
-use flate2::write::ZlibEncoder;
 
 use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
-use crate::protocol::packet::{CLoginPacket, PacketData, RawPacket};
+use crate::protocol::packet::{PacketData, RawPacket};
 use crate::server::ServerHandle;
 use crate::server::player_profile::PlayerProfile;
 use crate::types::VarInt;
@@ -126,8 +123,6 @@ impl Connection {
     }
 
     pub fn enable_compression(&mut self) -> crate::error::Result<()> {
-        // TODO: Implement compression.
-
         // // TODO: Add the threshold to the config.
         // let threshold = 256;
         // // TODO: Add the level to the config.

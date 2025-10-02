@@ -144,6 +144,22 @@ impl ProtocolWrite for String {
     }
 }
 
+impl ProtocolWrite for &str {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
+        VarInt::new(self.len() as i32).to_writer(writer)?;
+        writer.write_all(self.as_bytes()).wrap_err("failed to write string")?;
+        Ok(())
+    }
+}
+
+impl ProtocolWrite for str {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
+        VarInt::new(self.len() as i32).to_writer(writer)?;
+        writer.write_all(self.as_bytes()).wrap_err("failed to write string")?;
+        Ok(())
+    }
+}
+
 impl ProtocolWrite for Identifier {
     fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
         self.to_string().write_all(writer).wrap_err("failed to write identifier")

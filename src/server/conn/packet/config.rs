@@ -1,8 +1,5 @@
-use eyre::Context;
-
-use crate::protocol::packet::{CConfigurationPacket, CPlayPacket, SConfigurationPacket};
+use crate::protocol::packet::SConfigurationPacket;
 use crate::server::conn::{Connection, ConnectionState};
-use crate::types::{Identifier, VarInt};
 
 impl Connection {
     pub fn handle_configuration_packet(
@@ -12,13 +9,11 @@ impl Connection {
         match packet {
             SConfigurationPacket::ClientInformation { .. } => {
                 // TODO: Do something with client information.
-                self.send_packet(CConfigurationPacket::FinishConfiguration)?;
             }
             SConfigurationPacket::CookieResponse => todo!(),
             SConfigurationPacket::PluginMessage { channel, data } => {
                 if channel.namespace() == "minecraft" && channel.value() == "brand" {
-                    let brand_string =
-                        String::from_utf8(data).wrap_err("invalid utf8 in brand data")?;
+                    let brand_string = str::from_utf8(&data)?;
                     log::debug!("client brand: \"{}\"", brand_string);
                 } else {
                     log::debug!("received channel message on channel '{channel}': {data:?}");

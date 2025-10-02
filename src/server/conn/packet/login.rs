@@ -1,8 +1,9 @@
 use eyre::{Context, bail};
 
-use crate::protocol::packet::{CLoginPacket, SLoginPacket};
+use crate::protocol::packet::{CConfigurationPacket, CLoginPacket, ProtocolWrite, SLoginPacket};
 use crate::server::conn::{Connection, ConnectionState};
 use crate::server::player_profile::PlayerProfile;
+use crate::types::Identifier;
 
 impl Connection {
     pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> crate::error::Result<()> {
@@ -36,12 +37,34 @@ impl Connection {
             }
             SLoginPacket::LoginPluginResponse { .. } => todo!(),
             SLoginPacket::LoginAcknowledged => {
-                self.state = ConnectionState::Configuration;
                 log::debug!("login acknowledged");
+
+                self.send_brand(crate::BRAND)?;
+
+                self.state = ConnectionState::Configuration;
+                self.finish_configuration()?;
             }
             SLoginPacket::CookieResponse { .. } => todo!(),
         }
 
+        Ok(())
+    }
+
+    fn send_brand(&mut self, brand: &str) -> crate::error::Result<()> {
+        let mut data = Vec::new();
+        ProtocolWrite::write_all(brand, &mut data)?;
+
+        self.send_packet(CConfigurationPacket::PluginMessage {
+            channel: Identifier::new("minecraft", "brand")?,
+            data,
+        })?;
+
+        Ok(())
+    }
+
+    fn finish_configuration(&mut self) -> crate::error::Result<()> {
+        self.send_packet(CConfigurationPacket::FinishConfiguration)?;
+        log::debug!("configuration finished");
         Ok(())
     }
 }
