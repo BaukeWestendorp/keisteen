@@ -3,7 +3,7 @@ use std::io;
 use eyre::bail;
 
 use crate::nbt::CompoundTag;
-use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolWrite};
+use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolRead, ProtocolWrite};
 use crate::types::{Identifier, VarInt};
 
 use super::RawPacket;
@@ -24,7 +24,7 @@ pub enum CConfigurationPacket {
     Transfer,
     FeatureFlags,
     UpdateTags,
-    KnownPacks,
+    KnownPacks { known_packs: Vec<KnownPack> },
     CustomReportDetails,
     ServerLinks,
     ClearDialog,
@@ -66,7 +66,14 @@ impl From<CConfigurationPacket> for RawPacket {
             CConfigurationPacket::Transfer => todo!(),
             CConfigurationPacket::FeatureFlags => todo!(),
             CConfigurationPacket::UpdateTags => todo!(),
-            CConfigurationPacket::KnownPacks => todo!(),
+            CConfigurationPacket::KnownPacks { known_packs } => RawPacket {
+                packet_id: VarInt::new(0xE),
+                data: {
+                    let mut data = PacketData::new();
+                    data.write_all_prefixed(known_packs);
+                    data
+                },
+            },
             CConfigurationPacket::CustomReportDetails => todo!(),
             CConfigurationPacket::ServerLinks => todo!(),
             CConfigurationPacket::ClearDialog => todo!(),
@@ -97,7 +104,9 @@ pub enum SConfigurationPacket {
     KeepAlive,
     Pong,
     ResourcePackResponse,
-    KnownPacks,
+    KnownPacks {
+        known_packs: Vec<KnownPack>,
+    },
     CustomClickAction,
 }
 
@@ -127,7 +136,7 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
             0x04 => todo!(), // Ok(Self::KeepAlive),
             0x05 => todo!(), // Ok(Self::Pong),
             0x06 => todo!(), // Ok(Self::ResourcePackResponse),
-            0x07 => todo!(), // Ok(Self::KnownPacks),
+            0x07 => Ok(Self::KnownPacks { known_packs: packet.data.read_prefixed()? }),
             0x08 => todo!(), // Ok(Self::CustomClickAction),
             packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
@@ -136,14 +145,40 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
 
 #[derive(Debug)]
 pub struct RegistryDataEntry {
-    entry_id: Identifier,
-    data: Option<CompoundTag>,
+    pub entry_id: Identifier,
+    pub data: Option<CompoundTag>,
 }
 
 impl ProtocolWrite for RegistryDataEntry {
     fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
         self.entry_id.write_all(writer)?;
         self.data.prefixed_write_all(writer)?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct KnownPack {
+    pub namespace: String,
+    pub id: String,
+    pub version: String,
+}
+
+impl ProtocolRead for KnownPack {
+    fn read_from<R: io::Read>(reader: &mut R) -> crate::error::Result<Self> {
+        Ok(Self {
+            namespace: String::read_from(reader)?,
+            id: String::read_from(reader)?,
+            version: String::read_from(reader)?,
+        })
+    }
+}
+
+impl ProtocolWrite for KnownPack {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
+        self.namespace.write_all(writer)?;
+        self.id.write_all(writer)?;
+        self.version.write_all(writer)?;
         Ok(())
     }
 }
