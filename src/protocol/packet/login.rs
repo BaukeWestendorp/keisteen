@@ -99,9 +99,9 @@ impl TryFrom<RawPacket> for SLoginPacket {
                 shared_secret: packet.data.read_prefixed()?,
                 verify_token: packet.data.read_prefixed()?,
             }),
-            0x02 => todo!("LoginPluginResponse"),
+            0x02 => todo!(),
             0x03 => Ok(SLoginPacket::LoginAcknowledged),
-            0x04 => todo!("CookieResponse"),
+            0x04 => todo!(),
             packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
     }

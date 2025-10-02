@@ -126,18 +126,18 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
                 allow_server_listing: packet.data.read()?,
                 particle_status: packet.data.read()?,
             }),
-            0x01 => todo!(), // Ok(Self::CookieResponse),
+            0x01 => todo!(),
             0x02 => {
                 let channel = packet.data.read()?;
                 let data_len = packet.data.bytes().len();
                 Ok(Self::PluginMessage { channel, data: packet.data.read_predefined(data_len)? })
             }
             0x03 => Ok(Self::AcknowledgeFinishConfiguration),
-            0x04 => todo!(), // Ok(Self::KeepAlive),
-            0x05 => todo!(), // Ok(Self::Pong),
-            0x06 => todo!(), // Ok(Self::ResourcePackResponse),
+            0x04 => todo!(),
+            0x05 => todo!(),
+            0x06 => todo!(),
             0x07 => Ok(Self::KnownPacks { known_packs: packet.data.read_prefixed()? }),
-            0x08 => todo!(), // Ok(Self::CustomClickAction),
+            0x08 => todo!(),
             packet_id => bail!("invalid packet id: {packet_id:#04x}"),
         }
     }
