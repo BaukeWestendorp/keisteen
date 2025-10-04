@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 aes = "0.8.4"
 cfb8 = "0.8.1"
+clap = { version = "4.5.48", features = ["derive"] }
 env_logger = "0.11.8"
 eyre = "0.6.12"
 flate2 = { version = "1.1.2", features = ["zlib-rs"], default-features = false }

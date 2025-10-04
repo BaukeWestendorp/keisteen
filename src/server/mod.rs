@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use crate::protocol::registry::Registries;
@@ -13,28 +14,36 @@ pub mod player_profile;
 mod crypt;
 
 pub struct Server {
+    server_folder_path: PathBuf,
+
     crypt_keys: CryptKeys,
     registries: Registries,
     player_list: PlayerList,
 }
 
 impl Server {
-    pub fn new() -> Self {
+    pub fn new(server_folder_path: PathBuf) -> Self {
         // TODO: Get from server config.
         let max_players = 100;
 
         Self {
+            server_folder_path,
+
             crypt_keys: CryptKeys::new(),
             registries: Registries::load_from_assets(),
             player_list: PlayerList::new(max_players),
         }
     }
 
+    pub(crate) fn server_folder_path(&self) -> &PathBuf {
+        &self.server_folder_path
+    }
+
     pub fn crypt_keys(&self) -> &CryptKeys {
         &self.crypt_keys
     }
 
-    pub fn registries(&self) -> &Registries {
+    pub(crate) fn registries(&self) -> &Registries {
         &self.registries
     }
 

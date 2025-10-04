@@ -1,9 +1,31 @@
+use std::path::PathBuf;
+
+use clap::Parser;
 use keisteen::server::conn::ConnectionManager;
 use keisteen::server::{Server, ServerHandle};
+
+const IP: &str = "0.0.0.0";
+
+#[derive(Parser)]
+#[command(name = "Keisteen Server")]
+#[command(about = "An experimental Minecraft Server implementation", version = "0.0.1")]
+struct Args {
+    /// The path to the server folder.
+    #[arg(long, default_value = "./")]
+    path: PathBuf,
+
+    /// The port to bind the server to.
+    #[arg(long, default_value = "25565")]
+    port: u16,
+}
 
 fn main() {
     env_logger::builder().format_timestamp(None).init();
 
-    let handle = ServerHandle::new(Server::new());
-    ConnectionManager::new(handle).bind("127.0.0.1:25565").expect("should start server");
+    let Args { path, port } = Args::parse();
+
+    let address = format!("{}:{}", IP, port);
+
+    let handle = ServerHandle::new(Server::new(path));
+    ConnectionManager::new(handle).bind(address).expect("should start server");
 }
