@@ -79,7 +79,7 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] gamemode
       - [ ] generate-structures
       - [ ] generator-settings
-      - [ ] hardcore
+      - [x] hardcore
       - [ ] hide-online-players
       - [ ] initial-disabled-packs
       - [ ] initial-enabled-packs
