@@ -1,3 +1,4 @@
+use std::net::Ipv4Addr;
 use std::path::PathBuf;
 
 use eyre::Context;
@@ -59,8 +60,17 @@ impl ServerConfig {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
 pub struct ServerProperties {
     pub max_players: i32,
+    pub server_ip: Ipv4Addr,
+    pub server_port: u16,
+}
+
+impl Default for ServerProperties {
+    fn default() -> Self {
+        Self { max_players: 0, server_ip: Ipv4Addr::UNSPECIFIED, server_port: 25565 }
+    }
 }
