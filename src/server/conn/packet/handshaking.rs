@@ -1,3 +1,4 @@
+use crate::error::KeisteenResult;
 use crate::protocol::packet::SHandshakingPacket;
 use crate::server::conn::Connection;
 
@@ -11,6 +12,8 @@ impl Connection {
                         protocol_version,
                         crate::MC_PROTOCOL
                     );
+
+                    // TODO: Kick player.
                 }
 
                 self.state = intent;

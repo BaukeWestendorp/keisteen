@@ -2,7 +2,7 @@ use crate::protocol::registry::Registry;
 use crate::types::Identifier;
 use crate::worldgen::IntProvider;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct DimensionType {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -26,7 +26,7 @@ pub struct DimensionType {
     monster_spawn_block_light_limit: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
 pub enum MonsterSpawnLightLevel {

@@ -7,7 +7,6 @@ use crate::types::VarInt;
 use super::RawPacket;
 
 #[derive(Debug)]
-#[allow(dead_code)]
 pub enum SHandshakingPacket {
     Handshake {
         protocol_version: VarInt,

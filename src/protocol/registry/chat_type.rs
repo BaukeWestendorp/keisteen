@@ -2,7 +2,7 @@ use crate::protocol::registry::Registry;
 use crate::text::style::Style;
 use crate::types::Identifier;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct ChatType {
     chat: Decoration,
@@ -15,7 +15,7 @@ impl Registry for ChatType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Decoration {
     translation_key: String,

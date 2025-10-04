@@ -1,6 +1,6 @@
 // TODO: This is very ad-hoc. Properly serialize fields with enums etc.
 //       https://minecraft.wiki/w/Text_component_format#Java_Edition
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct Style {

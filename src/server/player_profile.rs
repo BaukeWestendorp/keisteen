@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+#[derive(Debug, Clone)]
 pub struct PlayerProfile {
     uuid: Uuid,
     username: String,

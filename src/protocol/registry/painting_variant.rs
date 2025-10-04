@@ -2,7 +2,7 @@ use crate::protocol::registry::Registry;
 use crate::text::text_component::TextComponent;
 use crate::types::Identifier;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct PaintingVariant {
     asset_id: Identifier,

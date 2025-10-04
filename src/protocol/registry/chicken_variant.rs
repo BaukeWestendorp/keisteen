@@ -1,7 +1,7 @@
 use crate::protocol::registry::Registry;
 use crate::types::Identifier;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct ChickenVariant {
     asset_id: Identifier,

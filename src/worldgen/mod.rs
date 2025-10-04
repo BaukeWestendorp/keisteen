@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(tag = "type")]
 pub enum IntProvider {
@@ -16,7 +16,7 @@ pub enum IntProvider {
     WeightedList { distribution: Vec<WeightedEntry> },
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct WeightedEntry {
     data: IntProvider,
     weight: i32,

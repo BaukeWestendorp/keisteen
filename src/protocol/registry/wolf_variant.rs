@@ -1,7 +1,7 @@
 use crate::protocol::registry::Registry;
 use crate::types::Identifier;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct WolfVariant {
     assets: WolfVariantAssets,
@@ -14,7 +14,7 @@ impl Registry for WolfVariant {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct WolfVariantAssets {
     wild: Identifier,

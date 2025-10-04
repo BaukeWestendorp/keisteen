@@ -71,7 +71,7 @@ impl Connection {
     }
 
     fn send_known_packs_packet(&mut self) -> KeisteenResult<()> {
-        // TODO: Actually get known packs.
+        // TODO: Actually synchronize known packs.
         let known_packs = vec![KnownPack {
             namespace: "minecraft".to_string(),
             id: "core".to_string(),
