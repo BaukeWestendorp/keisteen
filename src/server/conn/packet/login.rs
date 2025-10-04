@@ -24,7 +24,6 @@ impl Connection {
                 }
 
                 self.enable_encryption(&shared_secret).wrap_err("failed to enable encryption")?;
-
                 self.enable_compression().wrap_err("failed to enable compression")?;
 
                 let player_profile = self.player_profile();
@@ -37,7 +36,6 @@ impl Connection {
             SLoginPacket::LoginPluginResponse { .. } => todo!(),
             SLoginPacket::LoginAcknowledged => {
                 log::debug!("login acknowledged");
-
                 self.start_configuration()?;
             }
             SLoginPacket::CookieResponse { .. } => todo!(),

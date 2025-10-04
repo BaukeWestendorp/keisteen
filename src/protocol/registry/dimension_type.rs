@@ -5,6 +5,7 @@ use crate::worldgen::IntProvider;
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct DimensionType {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     fixed_time: Option<i64>,
     has_skylight: bool,
     has_ceiling: bool,

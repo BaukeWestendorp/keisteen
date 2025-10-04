@@ -25,18 +25,14 @@ impl VarInt {
         len
     }
 
-    pub fn to_bytes(mut self) -> Vec<u8> {
+    pub fn to_bytes(self) -> Vec<u8> {
+        let mut n = self.raw();
         let mut bytes = Vec::new();
-        loop {
-            if (self.0 & !Self::SEGMENT_BITS as i32) == 0 {
-                bytes.push(self.0 as u8);
-                break;
-            }
-
-            bytes.push(((self.0 & Self::SEGMENT_BITS as i32) | Self::CONTINUE_BIT as i32) as u8);
-
-            self.0 = ((self.0 as u32) >> 7) as i32;
+        while (n & !0x7F) != 0 {
+            bytes.push(((n & 0x7F) | 0x80) as u8);
+            n = ((n as u32) >> 7) as i32;
         }
+        bytes.push(n as u8);
         bytes
     }
 

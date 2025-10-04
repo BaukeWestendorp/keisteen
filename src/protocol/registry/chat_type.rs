@@ -19,6 +19,7 @@ impl Registry for ChatType {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Decoration {
     translation_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     style: Option<Style>,
     parameters: Vec<String>,
 }

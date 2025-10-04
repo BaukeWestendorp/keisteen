@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
 use std::{io, thread};
 
@@ -29,6 +30,7 @@ impl ConnectionManager {
         for stream in listener.incoming() {
             match stream {
                 Ok(stream) => {
+                    stream.set_nodelay(true)?;
                     Connection::new(stream, self.server.clone())?.spawn();
                 }
                 Err(err) => {
@@ -76,7 +78,7 @@ impl Connection {
         self.player_profile.as_ref().expect("player should have been initialized at login")
     }
 
-    pub fn spawn(self) {
+    pub fn spawn(mut self) {
         let peer_address = self
             .stream
             .peer_addr()
@@ -87,12 +89,20 @@ impl Connection {
             .name(format!("connection [{}]", peer_address))
             .spawn(move || {
                 log::info!("new connection: {}", peer_address);
-                self.run().unwrap()
+                if let Err(error) = self.run() {
+                    log::error!(
+                        "thread '{}' in {:?} state panicked: {}",
+                        thread::current().name().unwrap_or("<unnamed>"),
+                        &self.state,
+                        error
+                    );
+                    return;
+                }
             })
             .expect("should create thread");
     }
 
-    fn run(mut self) -> eyre::Result<()> {
+    fn run(&mut self) -> eyre::Result<()> {
         self.is_running = true;
 
         while self.is_running {
@@ -197,6 +207,10 @@ impl<W: io::Write> PacketWriter<W> {
 
     pub fn write_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
         let packet = packet.into();
+
+        let mut buf = Vec::new();
+        packet.packet_id.to_writer(&mut buf)?;
+        packet.data.to_writer(&mut buf)?;
 
         match self {
             PacketWriter::Raw(Some(writer)) => {

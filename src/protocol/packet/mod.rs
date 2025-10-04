@@ -1,7 +1,7 @@
 use std::io;
 use std::str::FromStr;
 
-use crate::nbt::CompoundTag;
+use crate::nbt;
 use crate::types::{Identifier, Position, VarInt};
 
 mod config;
@@ -76,7 +76,7 @@ impl PacketData {
         Ok(result)
     }
 
-    pub fn to_writer<W: io::Write>(&self, mut writer: W) -> io::Result<()> {
+    pub fn to_writer<W: io::Write>(&self, writer: &mut W) -> io::Result<()> {
         writer.write_all(&self.bytes)
     }
 }
@@ -91,7 +91,7 @@ pub trait ProtocolWrite {
     fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()>;
 }
 
-pub trait PrefixedProtocolWrite: ProtocolWrite {
+pub trait PrefixedProtocolWrite {
     fn prefixed_write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()>;
 }
 
@@ -172,9 +172,9 @@ impl ProtocolWrite for VarInt {
     }
 }
 
-impl ProtocolWrite for CompoundTag {
-    fn write_all<W: io::Write>(&self, _writer: &mut W) -> crate::error::Result<()> {
-        todo!();
+impl ProtocolWrite for nbt::NbtTag {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
+        self.to_writer(writer, nbt::WriteMode::Network).wrap_err("failed to write nbt value")
     }
 }
 
@@ -306,7 +306,7 @@ impl ProtocolRead for VarInt {
     }
 }
 
-impl ProtocolRead for CompoundTag {
+impl ProtocolRead for nbt::NbtTag {
     fn read_from<R: io::Read>(_reader: &mut R) -> crate::error::Result<Self> {
         todo!();
     }

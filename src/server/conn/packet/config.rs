@@ -1,6 +1,10 @@
+use std::collections::BTreeMap;
+
+use crate::nbt;
 use crate::protocol::packet::{
-    CConfigurationPacket, KnownPack, ProtocolWrite, SConfigurationPacket,
+    CConfigurationPacket, KnownPack, ProtocolWrite, RegistryDataEntry, SConfigurationPacket,
 };
+use crate::protocol::registry::Registry;
 use crate::server::conn::{Connection, ConnectionState};
 use crate::types::Identifier;
 
@@ -32,6 +36,12 @@ impl Connection {
             SConfigurationPacket::KnownPacks { known_packs } => {
                 log::debug!("client's known packs: {known_packs:?}");
                 // TODO: Do something with known packs.
+
+                self.send_registry_data_packets()?;
+
+                // TODO: Update Tags
+
+                self.finish_configuration()?;
             }
             SConfigurationPacket::CustomClickAction => todo!(),
         }
@@ -41,17 +51,13 @@ impl Connection {
 
     pub fn start_configuration(&mut self) -> crate::error::Result<()> {
         self.state = ConnectionState::Configuration;
-
-        self.send_brand(crate::BRAND)?;
+        self.send_brand_plugin_message_packet(crate::BRAND)?;
         // TODO: Send Feature Flags
-        self.send_known_packs()?;
-
-        self.finish_configuration()?;
-
+        self.send_known_packs_packet()?;
         Ok(())
     }
 
-    fn send_brand(&mut self, brand: &str) -> crate::error::Result<()> {
+    fn send_brand_plugin_message_packet(&mut self, brand: &str) -> crate::error::Result<()> {
         let mut data = Vec::new();
         ProtocolWrite::write_all(brand, &mut data)?;
 
@@ -63,7 +69,7 @@ impl Connection {
         Ok(())
     }
 
-    fn send_known_packs(&mut self) -> crate::error::Result<()> {
+    fn send_known_packs_packet(&mut self) -> crate::error::Result<()> {
         // TODO: Actually get known packs.
         let known_packs = vec![KnownPack {
             namespace: "minecraft".to_string(),
@@ -72,6 +78,56 @@ impl Connection {
         }];
 
         self.send_packet(CConfigurationPacket::KnownPacks { known_packs })?;
+
+        Ok(())
+    }
+
+    fn send_registry_data_packets(&mut self) -> crate::error::Result<()> {
+        let packets = {
+            let server = self.server.read();
+            let registries = server.registries();
+            vec![
+                create_packet(registries.banner_pattern())?,
+                create_packet(registries.cat_variant())?,
+                create_packet(registries.chat_type())?,
+                create_packet(registries.chicken_variant())?,
+                create_packet(registries.cow_variant())?,
+                create_packet(registries.damage_type())?,
+                // TODO: create_packet(registries.dialog())?,
+                create_packet(registries.dimension_type())?,
+                create_packet(registries.frog_variant())?,
+                create_packet(registries.painting_variant())?,
+                create_packet(registries.pig_variant())?,
+                // TODO: create_packet(registries.trim_material())?,
+                // TODO: create_packet(registries.trim_pattern())?,
+                create_packet(registries.wolf_sound_variant())?,
+                create_packet(registries.wolf_variant())?,
+                // TODO: create_packet(registries.worldgen_biome())?,
+            ]
+        };
+
+        for packet in packets {
+            self.send_packet(packet)?;
+        }
+
+        fn create_packet<R: Registry + serde::Serialize>(
+            registry_entries: &BTreeMap<Identifier, R>,
+        ) -> crate::error::Result<CConfigurationPacket> {
+            Ok(CConfigurationPacket::RegistryData {
+                registry_id: R::identifier(),
+                entries: {
+                    let mut entries = Vec::new();
+                    for (identifier, entry) in registry_entries {
+                        let entry_nbt = nbt::to_value(entry)?;
+                        entries.push(RegistryDataEntry {
+                            entry_id: identifier.clone(),
+                            data: Some(entry_nbt),
+                        });
+                    }
+                    entries
+                },
+            })
+        }
 
         Ok(())
     }

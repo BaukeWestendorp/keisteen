@@ -2,7 +2,7 @@ use std::io;
 
 use eyre::bail;
 
-use crate::nbt::CompoundTag;
+use crate::nbt;
 use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolRead, ProtocolWrite};
 use crate::types::{Identifier, VarInt};
 
@@ -56,7 +56,7 @@ impl From<CConfigurationPacket> for RawPacket {
                 data: {
                     let mut data = PacketData::new();
                     data.write_all(registry_id);
-                    data.write_all(entries);
+                    data.write_all_prefixed(entries);
                     data
                 },
             },
@@ -146,7 +146,7 @@ impl TryFrom<RawPacket> for SConfigurationPacket {
 #[derive(Debug)]
 pub struct RegistryDataEntry {
     pub entry_id: Identifier,
-    pub data: Option<CompoundTag>,
+    pub data: Option<nbt::NbtTag>,
 }
 
 impl ProtocolWrite for RegistryDataEntry {

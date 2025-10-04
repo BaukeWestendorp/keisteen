@@ -63,3 +63,24 @@ impl fmt::Display for Identifier {
         write!(f, "{}:{}", self.namespace, self.value)
     }
 }
+
+impl serde::Serialize for Identifier {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_string().serialize(serializer)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for Identifier {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+        string.parse().map_err(|err| {
+            serde::de::Error::custom(format!("Could not deserialize invalid identifier: {err}"))
+        })
+    }
+}
