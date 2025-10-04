@@ -17,10 +17,10 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 - [ ] Status
 	- [ ] Status response
 		- [x] Version
-		- [ ] Players
-		- [ ] Description
+		- [x] Players
+		- [x] Description
 			- [x] Send hardcoded description
-			- [ ] Send customizable description
+			- [x] Send customizable description
 		- [ ] Favicon
 		- [ ] Enforce secure chat
 	- [x] Pong response
