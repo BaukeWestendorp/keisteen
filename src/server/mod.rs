@@ -1,12 +1,15 @@
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+use crate::error::KeisteenResult;
 use crate::mc::protocol::registry::Registries;
 use crate::server::crypt::CryptKeys;
+use crate::server::folder::ServerFolder;
 use crate::server::player_list::PlayerList;
 
 pub mod conn;
 pub mod entity;
+pub mod folder;
 pub mod player;
 pub mod player_list;
 pub mod player_profile;
@@ -14,7 +17,7 @@ pub mod player_profile;
 mod crypt;
 
 pub struct Server {
-    server_folder_path: PathBuf,
+    server_folder: ServerFolder,
 
     crypt_keys: CryptKeys,
     registries: Registries,
@@ -22,21 +25,22 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(server_folder_path: PathBuf) -> Self {
-        // TODO: Get from server config.
-        let max_players = 100;
+    pub fn new(server_folder_path: PathBuf) -> KeisteenResult<Self> {
+        let server_folder = ServerFolder::new(server_folder_path)?;
 
-        Self {
-            server_folder_path,
+        let max_players = server_folder.config().properties().max_players as i32;
+
+        Ok(Self {
+            server_folder,
 
             crypt_keys: CryptKeys::new(),
             registries: Registries::load_from_assets(),
             player_list: PlayerList::new(max_players),
-        }
+        })
     }
 
-    pub(crate) fn server_folder_path(&self) -> &PathBuf {
-        &self.server_folder_path
+    pub(crate) fn server_folder(&self) -> &ServerFolder {
+        &self.server_folder
     }
 
     pub fn crypt_keys(&self) -> &CryptKeys {
