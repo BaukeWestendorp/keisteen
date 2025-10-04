@@ -1,6 +1,8 @@
 # Keisteen
 *Keisteen is an experimental Minecraft Server implementation written in Rust.*
 
+![Server List](README/serverlist.png)
+
 **Why?**
 a) Why not?
 b) For fun!
