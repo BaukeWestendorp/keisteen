@@ -1,16 +1,13 @@
 use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
 use std::{io, thread};
 
-use aes::cipher::KeyIvInit;
-use eyre::bail;
-
 use crate::error::KeisteenResult;
-use crate::server::crypt::{DecryptionStream, EncryptionStream};
-
-use crate::protocol::packet::{ClientboundPacket, PacketData, RawPacket};
+use crate::protocol::packet::RawPacket;
+use crate::protocol::packet::client::ClientboundPacket;
 use crate::server::ServerHandle;
+use crate::server::conn::packet::decoder::PacketDecoder;
+use crate::server::conn::packet::encoder::PacketEncoder;
 use crate::server::player_profile::PlayerProfile;
-use crate::types::VarInt;
 
 mod packet;
 
@@ -48,13 +45,13 @@ pub struct Connection {
 
     server: ServerHandle,
 
-    state: ConnectionState,
+    pub(crate) state: ConnectionState,
 
-    writer: PacketWriter<TcpStream>,
-    reader: PacketReader<TcpStream>,
+    writer: PacketEncoder<TcpStream>,
+    reader: PacketDecoder<TcpStream>,
     stream: TcpStream,
 
-    player_profile: Option<PlayerProfile>,
+    pub(crate) player_profile: Option<PlayerProfile>,
 }
 
 impl Connection {
@@ -66,19 +63,23 @@ impl Connection {
 
             state: ConnectionState::Handshaking,
 
-            writer: PacketWriter::new(stream.try_clone()?),
-            reader: PacketReader::new(stream.try_clone()?),
+            writer: PacketEncoder::new(stream.try_clone()?),
+            reader: PacketDecoder::new(stream.try_clone()?),
             stream,
 
             player_profile: None,
         })
     }
 
+    pub fn server(&self) -> &ServerHandle {
+        &self.server
+    }
+
     pub fn player_profile(&self) -> &PlayerProfile {
         self.player_profile.as_ref().expect("player should have been initialized at login")
     }
 
-    pub fn spawn(mut self) {
+    pub(crate) fn spawn(mut self) {
         let peer_address = self
             .stream
             .peer_addr()
@@ -114,13 +115,13 @@ impl Connection {
         Ok(())
     }
 
-    fn close(&mut self) -> io::Result<()> {
+    pub(crate) fn close(&mut self) -> io::Result<()> {
         self.stream.shutdown(Shutdown::Both)?;
         self.is_running = false;
         Ok(())
     }
 
-    fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
+    pub(crate) fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
         let shared_secret =
             self.server.read().crypt_keys().decrypt(shared_secret).expect("should decrypt secret");
 
@@ -132,7 +133,7 @@ impl Connection {
         Ok(())
     }
 
-    pub fn enable_compression(&mut self) -> KeisteenResult<()> {
+    pub(crate) fn enable_compression(&mut self) -> KeisteenResult<()> {
         // // TODO: Add the threshold to the config.
         // let threshold = 256;
         // // TODO: Add the level to the config.
@@ -150,11 +151,11 @@ impl Connection {
         Ok(())
     }
 
-    pub fn send_packet<P: ClientboundPacket>(&mut self, packet: P) -> io::Result<()> {
+    pub(crate) fn send_packet<P: ClientboundPacket>(&mut self, packet: P) -> io::Result<()> {
         self.writer.write_packet(packet)
     }
 
-    pub fn read_packet(&mut self) -> io::Result<RawPacket> {
+    pub(crate) fn read_packet(&mut self) -> io::Result<RawPacket> {
         self.reader.read_packet()
     }
 }
@@ -167,142 +168,4 @@ pub enum ConnectionState {
     Transfer,
     Config,
     Play,
-}
-
-pub enum PacketWriter<W: io::Write> {
-    Raw(Option<W>),
-    Encrypted(Option<EncryptionStream<W>>),
-    Compressed { writer: EncryptionStream<W>, threshold: u32, level: u32 },
-}
-
-impl<W: io::Write> PacketWriter<W> {
-    pub fn new(writer: W) -> Self {
-        Self::Raw(Some(writer))
-    }
-
-    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
-        let writer = match self {
-            Self::Raw(writer) => writer.take().unwrap(),
-            Self::Encrypted(_) | Self::Compressed { .. } => bail!("encryption already enabled"),
-        };
-
-        let cipher = cfb8::Encryptor::new_from_slices(shared_secret, shared_secret).unwrap();
-        let encryption_stream = EncryptionStream::new(cipher, writer);
-        *self = Self::Encrypted(Some(encryption_stream));
-
-        Ok(())
-    }
-
-    pub fn enable_compression(&mut self, threshold: u32, level: u32) -> KeisteenResult<()> {
-        let writer = match self {
-            Self::Raw(_) => bail!("stream is not encrypted"),
-            Self::Encrypted(writer) => writer.take().unwrap(),
-            Self::Compressed { .. } => bail!("compression already enabled"),
-        };
-
-        *self = Self::Compressed { writer, threshold, level };
-
-        Ok(())
-    }
-
-    pub fn write_packet<P: ClientboundPacket>(&mut self, packet: P) -> io::Result<()> {
-        let packet_id = VarInt::new(packet.packet_id());
-        let mut data = PacketData::new();
-        packet.encode(&mut data);
-        let packet_length = VarInt::new((packet_id.len() + data.bytes().len()) as i32);
-
-        let mut buf = Vec::new();
-        packet_id.to_writer(&mut buf)?;
-        data.to_writer(&mut buf)?;
-
-        match self {
-            PacketWriter::Raw(Some(writer)) => {
-                packet_length.to_writer(writer)?;
-                packet_id.to_writer(writer)?;
-                data.to_writer(writer)?;
-            }
-            PacketWriter::Encrypted(Some(writer)) => {
-                packet_length.to_writer(writer)?;
-                packet_id.to_writer(writer)?;
-                data.to_writer(writer)?;
-            }
-            PacketWriter::Compressed { writer, .. } => {
-                // TODO: Implement compression.
-
-                packet_length.to_writer(writer)?;
-                packet_id.to_writer(writer)?;
-                data.to_writer(writer)?;
-            }
-            _ => unreachable!(),
-        }
-
-        Ok(())
-    }
-}
-
-pub enum PacketReader<R: io::Read> {
-    Raw(Option<R>),
-    Encrypted(Option<DecryptionStream<R>>),
-    Compressed { reader: DecryptionStream<R> },
-}
-
-impl<R: io::Read> PacketReader<R> {
-    pub fn new(reader: R) -> Self {
-        Self::Raw(Some(reader))
-    }
-
-    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
-        let reader = match self {
-            Self::Raw(reader) => reader.take().unwrap(),
-            Self::Encrypted(_) | Self::Compressed { .. } => bail!("encryption already enabled"),
-        };
-
-        let cipher = cfb8::Decryptor::new_from_slices(shared_secret, shared_secret).unwrap();
-        let decryption_stream = DecryptionStream::new(cipher, reader);
-        *self = Self::Encrypted(Some(decryption_stream));
-
-        Ok(())
-    }
-
-    pub fn enable_compression(&mut self) -> KeisteenResult<()> {
-        let reader = match self {
-            Self::Raw(_) => bail!("stream is not encrypted"),
-            Self::Encrypted(reader) => reader.take().unwrap(),
-            Self::Compressed { .. } => bail!("compression already enabled"),
-        };
-
-        *self = Self::Compressed { reader };
-
-        Ok(())
-    }
-
-    pub fn read_packet(&mut self) -> io::Result<RawPacket> {
-        fn read_uncompresed<R: io::Read>(mut reader: R, length: VarInt) -> io::Result<RawPacket> {
-            let packet_id = VarInt::from_reader(&mut reader)?;
-            let data_len = (length.raw() as usize).saturating_sub(packet_id.len());
-            let mut data = vec![0u8; data_len];
-            reader.read_exact(&mut data)?;
-            Ok(RawPacket { packet_id, data: PacketData::from(data) })
-        }
-
-        let packet = match self {
-            PacketReader::Raw(Some(reader)) => {
-                let length = VarInt::from_reader(reader)?;
-                read_uncompresed(reader, length)?
-            }
-            PacketReader::Encrypted(Some(reader)) => {
-                let length = VarInt::from_reader(reader)?;
-                read_uncompresed(reader, length)?
-            }
-            PacketReader::Compressed { reader } => {
-                // TODO: Implement compression.
-
-                let length = VarInt::from_reader(reader)?;
-                read_uncompresed(reader, length)?
-            }
-            _ => unreachable!(),
-        };
-
-        Ok(packet)
-    }
 }

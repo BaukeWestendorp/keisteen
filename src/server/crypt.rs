@@ -5,7 +5,7 @@ use aes::cipher::{BlockDecryptMut, BlockEncryptMut, BlockSizeUser};
 use rsa::traits::PublicKeyParts;
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
 
-use crate::protocol::packet::CLoginPacket;
+use crate::protocol::packet::client;
 
 pub struct CryptKeys {
     public_key_der: Vec<u8>,
@@ -42,8 +42,11 @@ impl CryptKeys {
         rsa::RsaPrivateKey::new(&mut rng, 1024).expect("failed to generate a key")
     }
 
-    pub fn generate_encryption_request_packet(&self, should_authenticate: bool) -> CLoginPacket {
-        CLoginPacket::EncryptionRequest {
+    pub fn generate_encryption_request_packet(
+        &self,
+        should_authenticate: bool,
+    ) -> client::login::EncryptionRequest {
+        client::login::EncryptionRequest {
             server_id: "".to_string(),
             public_key: self.public_key_der.clone(),
             verify_token: self.verification_token.to_vec(),

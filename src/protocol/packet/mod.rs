@@ -8,36 +8,11 @@ use crate::error::KeisteenResult;
 use crate::nbt;
 use crate::types::{Identifier, Position, VarInt};
 
-pub use config::*;
-pub use handshaking::*;
-pub use login::*;
-pub use play::*;
-pub use status::*;
+pub mod client;
+pub mod server;
 
-mod config;
-mod handshaking;
-mod login;
-mod play;
-mod status;
-
-pub trait ServerboundPacket {
-    fn decode(raw: RawPacket) -> KeisteenResult<Self>
-    where
-        Self: Sized;
-
-    fn handle_invalid_packet_id(id: i32) -> KeisteenResult<Self>
-    where
-        Self: Sized,
-    {
-        bail!("invalid packet id: {id:#04x}");
-    }
-}
-
-pub trait ClientboundPacket {
-    fn packet_id(&self) -> i32;
-
-    fn encode(self, data: &mut PacketData);
-}
+pub mod known_pack;
+pub mod registry_data_entry;
 
 #[derive(Debug)]
 pub struct RawPacket {

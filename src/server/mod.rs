@@ -4,8 +4,9 @@ use crate::protocol::registry::Registries;
 use crate::server::crypt::CryptKeys;
 
 pub mod conn;
+pub mod player_profile;
+
 mod crypt;
-mod player_profile;
 
 pub struct Server {
     crypt_keys: CryptKeys,
