@@ -37,7 +37,7 @@ impl Connection {
             SLoginPacket::LoginPluginResponse { .. } => todo!(),
             SLoginPacket::LoginAcknowledged => {
                 log::debug!("login acknowledged");
-                self.start_configuration()?;
+                self.start_config()?;
             }
             SLoginPacket::CookieResponse { .. } => todo!(),
         }

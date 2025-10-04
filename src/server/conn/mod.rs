@@ -165,7 +165,7 @@ pub enum ConnectionState {
     Status,
     Login,
     Transfer,
-    Configuration,
+    Config,
     Play,
 }
 

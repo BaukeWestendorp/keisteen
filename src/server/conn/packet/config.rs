@@ -3,23 +3,20 @@ use std::collections::BTreeMap;
 use crate::error::KeisteenResult;
 use crate::nbt;
 use crate::protocol::packet::{
-    CConfigurationPacket, KnownPack, ProtocolWrite, RegistryDataEntry, SConfigurationPacket,
+    CConfigPacket, KnownPack, ProtocolWrite, RegistryDataEntry, SConfigPacket,
 };
 use crate::protocol::registry::Registry;
 use crate::server::conn::{Connection, ConnectionState};
 use crate::types::Identifier;
 
 impl Connection {
-    pub fn handle_configuration_packet(
-        &mut self,
-        packet: SConfigurationPacket,
-    ) -> KeisteenResult<()> {
+    pub fn handle_config_packet(&mut self, packet: SConfigPacket) -> KeisteenResult<()> {
         match packet {
-            SConfigurationPacket::ClientInformation { .. } => {
+            SConfigPacket::ClientInformation { .. } => {
                 // TODO: Do something with client information.
             }
-            SConfigurationPacket::CookieResponse => todo!(),
-            SConfigurationPacket::PluginMessage { channel, data } => {
+            SConfigPacket::CookieResponse => todo!(),
+            SConfigPacket::PluginMessage { channel, data } => {
                 if channel.namespace() == "minecraft" && channel.value() == "brand" {
                     let brand_string = str::from_utf8(&data)?;
                     log::debug!("client brand: \"{}\"", brand_string);
@@ -27,14 +24,14 @@ impl Connection {
                     log::debug!("received channel message on channel '{channel}': {data:?}");
                 }
             }
-            SConfigurationPacket::AcknowledgeFinishConfiguration => {
+            SConfigPacket::AcknowledgeFinishConfig => {
                 log::debug!("configuration acknowledged");
                 self.state = ConnectionState::Play;
             }
-            SConfigurationPacket::KeepAlive => todo!(),
-            SConfigurationPacket::Pong => todo!(),
-            SConfigurationPacket::ResourcePackResponse => todo!(),
-            SConfigurationPacket::KnownPacks { known_packs } => {
+            SConfigPacket::KeepAlive => todo!(),
+            SConfigPacket::Pong => todo!(),
+            SConfigPacket::ResourcePackResponse => todo!(),
+            SConfigPacket::KnownPacks { known_packs } => {
                 log::debug!("client's known packs: {known_packs:?}");
                 // TODO: Do something with known packs.
 
@@ -42,16 +39,16 @@ impl Connection {
 
                 // TODO: Update Tags
 
-                self.finish_configuration()?;
+                self.finish_config()?;
             }
-            SConfigurationPacket::CustomClickAction => todo!(),
+            SConfigPacket::CustomClickAction => todo!(),
         }
 
         Ok(())
     }
 
-    pub fn start_configuration(&mut self) -> KeisteenResult<()> {
-        self.state = ConnectionState::Configuration;
+    pub fn start_config(&mut self) -> KeisteenResult<()> {
+        self.state = ConnectionState::Config;
         self.send_brand_plugin_message_packet(crate::BRAND)?;
         // TODO: Send Feature Flags
         self.send_known_packs_packet()?;
@@ -62,7 +59,7 @@ impl Connection {
         let mut data = Vec::new();
         ProtocolWrite::write_all(brand, &mut data)?;
 
-        self.send_packet(CConfigurationPacket::PluginMessage {
+        self.send_packet(CConfigPacket::PluginMessage {
             channel: Identifier::new("minecraft", "brand")?,
             data,
         })?;
@@ -78,7 +75,7 @@ impl Connection {
             version: crate::MC_VERSION.to_string(),
         }];
 
-        self.send_packet(CConfigurationPacket::KnownPacks { known_packs })?;
+        self.send_packet(CConfigPacket::KnownPacks { known_packs })?;
 
         Ok(())
     }
@@ -113,8 +110,8 @@ impl Connection {
 
         fn create_packet<R: Registry + serde::Serialize>(
             registry_entries: &BTreeMap<Identifier, R>,
-        ) -> KeisteenResult<CConfigurationPacket> {
-            Ok(CConfigurationPacket::RegistryData {
+        ) -> KeisteenResult<CConfigPacket> {
+            Ok(CConfigPacket::RegistryData {
                 registry_id: R::identifier(),
                 entries: {
                     let mut entries = Vec::new();
@@ -133,8 +130,8 @@ impl Connection {
         Ok(())
     }
 
-    fn finish_configuration(&mut self) -> KeisteenResult<()> {
-        self.send_packet(CConfigurationPacket::FinishConfiguration)?;
+    fn finish_config(&mut self) -> KeisteenResult<()> {
+        self.send_packet(CConfigPacket::FinishConfig)?;
 
         log::debug!("configuration finished");
 

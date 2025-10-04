@@ -1,6 +1,6 @@
 use crate::error::KeisteenResult;
 use crate::protocol::packet::{
-    RawPacket, SConfigurationPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
+    RawPacket, SConfigPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
 };
 use crate::server::conn::{Connection, ConnectionState};
 
@@ -27,9 +27,9 @@ impl Connection {
                 let packet = SLoginPacket::try_from(packet)?;
                 self.handle_login_packet(packet)?;
             }
-            ConnectionState::Configuration => {
-                let packet = SConfigurationPacket::try_from(packet)?;
-                self.handle_configuration_packet(packet)?;
+            ConnectionState::Config => {
+                let packet = SConfigPacket::try_from(packet)?;
+                self.handle_config_packet(packet)?;
             }
             ConnectionState::Play => {
                 todo!();
