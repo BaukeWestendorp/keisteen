@@ -8,6 +8,7 @@ use crate::server::ServerHandle;
 use crate::server::conn::packet::decoder::PacketDecoder;
 use crate::server::conn::packet::encoder::PacketEncoder;
 use crate::server::player_profile::PlayerProfile;
+use crate::text::text_component::TextComponent;
 
 mod packet;
 
@@ -92,13 +93,14 @@ impl Connection {
                 log::info!("new connection: {}", peer_address);
                 if let Err(error) = self.run() {
                     log::error!(
-                        "thread '{}' in {:?} state panicked: {}",
+                        "thread '{}' in {:?} state stopped: {}",
                         thread::current().name().unwrap_or("<unnamed>"),
                         &self.state,
                         error
                     );
-                    return;
                 }
+
+                self.disconnect(None);
             })
             .expect("should create thread");
     }
@@ -115,15 +117,30 @@ impl Connection {
         Ok(())
     }
 
-    pub(crate) fn close(&mut self) -> io::Result<()> {
-        self.stream.shutdown(Shutdown::Both)?;
+    pub fn disconnect(&mut self, reason: Option<TextComponent>) {
+        if let Some(profile) = &self.player_profile {
+            log::info!(
+                "player '{}' disconnected{}",
+                profile.username(),
+                if let Some(reason) = reason { format!(": {}", reason) } else { String::new() }
+            );
+            self.server.update(|server| server.player_list_mut().remove_player(profile.uuid()));
+        }
+
+        self.player_profile = None;
+
+        self.close();
+    }
+
+    fn close(&mut self) {
+        let _ = self.stream.shutdown(Shutdown::Both);
         self.is_running = false;
-        Ok(())
     }
 
     pub(crate) fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
-        let shared_secret =
-            self.server.read().crypt_keys().decrypt(shared_secret).expect("should decrypt secret");
+        let shared_secret = self.server.read(|server| {
+            server.crypt_keys().decrypt(shared_secret).expect("should decrypt secret")
+        });
 
         self.writer.enable_encryption(&shared_secret)?;
         self.reader.enable_encryption(&shared_secret)?;
