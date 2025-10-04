@@ -25,18 +25,16 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new(server_folder_path: PathBuf) -> KeisteenResult<Self> {
-        let server_folder = ServerFolder::new(server_folder_path)?;
-
+    pub fn new(server_folder: ServerFolder) -> Self {
         let max_players = server_folder.config().properties().max_players as i32;
 
-        Ok(Self {
+        Self {
             server_folder,
 
             crypt_keys: CryptKeys::new(),
             registries: Registries::load_from_assets(),
             player_list: PlayerList::new(max_players),
-        })
+        }
     }
 
     pub(crate) fn server_folder(&self) -> &ServerFolder {

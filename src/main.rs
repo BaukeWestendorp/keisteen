@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 use keisteen::server::conn::ConnectionManager;
+use keisteen::server::folder::ServerFolder;
 use keisteen::server::{Server, ServerHandle};
 
 const IP: &str = "0.0.0.0";
@@ -24,9 +25,10 @@ fn main() {
 
     let Args { path, port } = Args::parse();
 
-    let address = format!("{}:{}", IP, port);
-
-    let server = Server::new(path).expect("should create server");
+    let server_folder = ServerFolder::new(path).expect("should create server");
+    let server = Server::new(server_folder);
     let handle = ServerHandle::new(server);
+
+    let address = format!("{}:{}", IP, port);
     ConnectionManager::new(handle).bind(address).expect("should start server");
 }
