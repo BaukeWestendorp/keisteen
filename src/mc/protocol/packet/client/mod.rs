@@ -1,4 +1,4 @@
-use crate::protocol::packet::PacketData;
+use crate::mc::protocol::packet::PacketData;
 
 pub mod config;
 pub mod login;

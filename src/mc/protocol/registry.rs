@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
-use crate::text::style::Style;
-use crate::text::text_component::TextComponent;
-use crate::types::Identifier;
-use crate::util::IntProvider;
-use crate::world::biome::Biome;
+use crate::mc::text::style::Style;
+use crate::mc::text::text_component::TextComponent;
+use crate::mc::types::Identifier;
+use crate::mc::util::IntProvider;
+use crate::mc::world::biome::Biome;
 
 #[derive(Debug)]
 pub struct Registries {

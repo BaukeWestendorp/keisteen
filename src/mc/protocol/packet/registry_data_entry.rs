@@ -1,9 +1,9 @@
 use std::io;
 
 use crate::error::KeisteenResult;
-use crate::nbt;
-use crate::protocol::packet::{PrefixedProtocolWrite, ProtocolWrite};
-use crate::types::Identifier;
+use crate::mc::nbt;
+use crate::mc::protocol::packet::{PrefixedProtocolWrite, ProtocolWrite};
+use crate::mc::types::Identifier;
 
 #[derive(Debug)]
 pub struct RegistryDataEntry {

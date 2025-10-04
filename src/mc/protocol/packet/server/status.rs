@@ -1,8 +1,8 @@
 use crate::error::KeisteenResult;
-use crate::protocol::packet::server::ServerboundPacket;
-use crate::protocol::packet::{RawPacket, client};
+use crate::mc::protocol::packet::server::ServerboundPacket;
+use crate::mc::protocol::packet::{RawPacket, client};
+use crate::mc::text::text_component::TextComponent;
 use crate::server::conn::Connection;
-use crate::text::text_component::TextComponent;
 
 use eyre::bail;
 use uuid::Uuid;

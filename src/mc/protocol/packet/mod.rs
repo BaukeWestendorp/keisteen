@@ -5,8 +5,8 @@ use eyre::{Context, bail};
 use uuid::Uuid;
 
 use crate::error::KeisteenResult;
-use crate::nbt;
-use crate::types::{Identifier, Position, VarInt};
+use crate::mc::nbt;
+use crate::mc::types::{Identifier, Position, VarInt};
 
 pub mod client;
 pub mod server;

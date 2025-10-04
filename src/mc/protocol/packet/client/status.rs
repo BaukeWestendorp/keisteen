@@ -1,5 +1,5 @@
-use crate::protocol::packet::PacketData;
-use crate::protocol::packet::client::ClientboundPacket;
+use crate::mc::protocol::packet::PacketData;
+use crate::mc::protocol::packet::client::ClientboundPacket;
 
 #[derive(Debug)]
 pub struct StatusResponse {

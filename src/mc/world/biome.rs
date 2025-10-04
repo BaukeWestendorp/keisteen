@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::types::Identifier;
+use crate::mc::types::Identifier;
 
 #[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]

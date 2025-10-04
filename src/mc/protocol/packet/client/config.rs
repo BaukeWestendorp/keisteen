@@ -1,8 +1,8 @@
-use crate::protocol::packet::PacketData;
-use crate::protocol::packet::client::ClientboundPacket;
-use crate::protocol::packet::known_pack::KnownPack;
-use crate::protocol::packet::registry_data_entry::RegistryDataEntry;
-use crate::types::Identifier;
+use crate::mc::protocol::packet::PacketData;
+use crate::mc::protocol::packet::client::ClientboundPacket;
+use crate::mc::protocol::packet::known_pack::KnownPack;
+use crate::mc::protocol::packet::registry_data_entry::RegistryDataEntry;
+use crate::mc::types::Identifier;
 
 #[derive(Debug)]
 pub struct CookieRequest;

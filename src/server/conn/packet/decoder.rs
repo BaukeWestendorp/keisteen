@@ -4,9 +4,9 @@ use aes::cipher::KeyIvInit;
 use eyre::bail;
 
 use crate::error::KeisteenResult;
-use crate::protocol::packet::{PacketData, RawPacket};
+use crate::mc::protocol::packet::{PacketData, RawPacket};
+use crate::mc::types::VarInt;
 use crate::server::crypt::DecryptionStream;
-use crate::types::VarInt;
 
 pub enum PacketDecoder<R: io::Read> {
     Raw(Option<R>),

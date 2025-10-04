@@ -1,10 +1,10 @@
 use crate::error::KeisteenResult;
-use crate::protocol::packet::known_pack::KnownPack;
-use crate::protocol::packet::server::ServerboundPacket;
-use crate::protocol::packet::{self, ProtocolWrite, RawPacket, client};
+use crate::mc::protocol::packet::known_pack::KnownPack;
+use crate::mc::protocol::packet::server::ServerboundPacket;
+use crate::mc::protocol::packet::{self, ProtocolWrite, RawPacket, client};
+use crate::mc::types::{Identifier, VarInt};
 use crate::server::conn::{Connection, ConnectionState};
 use crate::server::player_profile::PlayerProfile;
-use crate::types::{Identifier, VarInt};
 use eyre::{Context, bail};
 use uuid::Uuid;
 

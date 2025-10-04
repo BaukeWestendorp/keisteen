@@ -5,7 +5,7 @@ use aes::cipher::{BlockDecryptMut, BlockEncryptMut, BlockSizeUser};
 use rsa::traits::PublicKeyParts;
 use rsa::{Pkcs1v15Encrypt, RsaPrivateKey};
 
-use crate::protocol::packet::client;
+use crate::mc::protocol::packet::client;
 
 pub struct CryptKeys {
     public_key_der: Vec<u8>,

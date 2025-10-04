@@ -1,9 +1,9 @@
 use serde::Serialize;
 use serde::ser::{self, Impossible};
 
-use crate::nbt;
-use crate::nbt::error::{Error, Result};
-use crate::nbt::value::NbtTag;
+use crate::mc::nbt;
+use crate::mc::nbt::error::{Error, Result};
+use crate::mc::nbt::value::NbtTag;
 
 pub struct Serializer {
     output: NbtTag,

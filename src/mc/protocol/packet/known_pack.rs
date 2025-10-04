@@ -1,7 +1,7 @@
 use std::io;
 
 use crate::error::KeisteenResult;
-use crate::protocol::packet::{ProtocolRead, ProtocolWrite};
+use crate::mc::protocol::packet::{ProtocolRead, ProtocolWrite};
 
 #[derive(Debug)]
 pub struct KnownPack {

@@ -2,13 +2,13 @@ use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
 use std::{io, thread};
 
 use crate::error::KeisteenResult;
-use crate::protocol::packet::RawPacket;
-use crate::protocol::packet::client::ClientboundPacket;
+use crate::mc::protocol::packet::RawPacket;
+use crate::mc::protocol::packet::client::ClientboundPacket;
+use crate::mc::text::text_component::TextComponent;
 use crate::server::ServerHandle;
 use crate::server::conn::packet::decoder::PacketDecoder;
 use crate::server::conn::packet::encoder::PacketEncoder;
 use crate::server::player_profile::PlayerProfile;
-use crate::text::text_component::TextComponent;
 
 mod packet;
 

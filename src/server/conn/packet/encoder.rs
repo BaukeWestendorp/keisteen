@@ -4,10 +4,10 @@ use aes::cipher::KeyIvInit;
 use eyre::bail;
 
 use crate::error::KeisteenResult;
-use crate::protocol::packet::PacketData;
-use crate::protocol::packet::client::ClientboundPacket;
+use crate::mc::protocol::packet::PacketData;
+use crate::mc::protocol::packet::client::ClientboundPacket;
+use crate::mc::types::VarInt;
 use crate::server::crypt::EncryptionStream;
-use crate::types::VarInt;
 
 pub enum PacketEncoder<W: io::Write> {
     Raw(Option<W>),

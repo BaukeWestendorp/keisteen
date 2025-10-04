@@ -1,6 +1,6 @@
-use crate::protocol::packet::PacketData;
-use crate::protocol::packet::client::ClientboundPacket;
-use crate::types::{Identifier, Position, VarInt};
+use crate::mc::protocol::packet::PacketData;
+use crate::mc::protocol::packet::client::ClientboundPacket;
+use crate::mc::types::{Identifier, Position, VarInt};
 
 #[derive(Debug)]
 pub struct Login {

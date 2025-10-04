@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
+use crate::mc::text::text_component::TextComponent;
 use crate::server::player::Player;
-use crate::text::text_component::TextComponent;
 
 #[derive(Debug)]
 pub struct PlayerList {

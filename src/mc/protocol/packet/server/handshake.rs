@@ -1,8 +1,8 @@
 use crate::error::KeisteenResult;
-use crate::protocol::packet::RawPacket;
-use crate::protocol::packet::server::ServerboundPacket;
+use crate::mc::protocol::packet::RawPacket;
+use crate::mc::protocol::packet::server::ServerboundPacket;
+use crate::mc::types::VarInt;
 use crate::server::conn::{Connection, ConnectionState};
-use crate::types::VarInt;
 
 use eyre::bail;
 

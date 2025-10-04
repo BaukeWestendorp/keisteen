@@ -1,5 +1,5 @@
 use crate::error::KeisteenResult;
-use crate::protocol::packet::RawPacket;
+use crate::mc::protocol::packet::RawPacket;
 use crate::server::conn::Connection;
 
 pub mod config;

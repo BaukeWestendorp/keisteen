@@ -1,8 +1,8 @@
 use uuid::Uuid;
 
-use crate::protocol::packet::PacketData;
-use crate::protocol::packet::client::ClientboundPacket;
-use crate::types::{Identifier, VarInt};
+use crate::mc::protocol::packet::PacketData;
+use crate::mc::protocol::packet::client::ClientboundPacket;
+use crate::mc::types::{Identifier, VarInt};
 
 #[derive(Debug)]
 pub struct Disconnected;

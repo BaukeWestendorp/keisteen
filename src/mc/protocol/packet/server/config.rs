@@ -3,15 +3,15 @@ use std::collections::BTreeMap;
 use eyre::bail;
 
 use crate::error::KeisteenResult;
-use crate::nbt;
-use crate::protocol::packet::known_pack::KnownPack;
-use crate::protocol::packet::registry_data_entry::RegistryDataEntry;
-use crate::protocol::packet::server::ServerboundPacket;
-use crate::protocol::packet::{RawPacket, client};
-use crate::protocol::registry::Registry;
+use crate::mc::nbt;
+use crate::mc::protocol::packet::known_pack::KnownPack;
+use crate::mc::protocol::packet::registry_data_entry::RegistryDataEntry;
+use crate::mc::protocol::packet::server::ServerboundPacket;
+use crate::mc::protocol::packet::{RawPacket, client};
+use crate::mc::protocol::registry::Registry;
+use crate::mc::types::{Identifier, VarInt};
 use crate::server::conn::{Connection, ConnectionState};
 use crate::server::player::Player;
-use crate::types::{Identifier, VarInt};
 
 pub fn handle_raw_packet(raw: RawPacket, conn: &mut Connection) -> KeisteenResult<()> {
     match raw.packet_id.raw() {
