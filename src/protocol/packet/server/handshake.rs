@@ -4,6 +4,15 @@ use crate::protocol::packet::server::ServerboundPacket;
 use crate::server::conn::{Connection, ConnectionState};
 use crate::types::VarInt;
 
+use eyre::bail;
+
+pub fn handle_raw_packet(raw: RawPacket, conn: &mut Connection) -> KeisteenResult<()> {
+    match raw.packet_id.raw() {
+        Handshake::PACKET_ID => Handshake::decode(raw)?.handle(conn),
+        _ => bail!("unknown handshake packet id: {}", raw.packet_id.raw()),
+    }
+}
+
 #[derive(Debug)]
 pub struct Handshake {
     pub protocol_version: VarInt,
