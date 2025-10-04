@@ -7,7 +7,15 @@ impl Connection {
         packet: SHandshakingPacket,
     ) -> crate::error::Result<()> {
         match packet {
-            SHandshakingPacket::Handshake { intent, .. } => {
+            SHandshakingPacket::Handshake { intent, protocol_version, .. } => {
+                if protocol_version != crate::MC_PROTOCOL {
+                    log::warn!(
+                        "client has protocol version {}, but server is {}",
+                        protocol_version,
+                        crate::MC_PROTOCOL
+                    );
+                }
+
                 self.state = intent;
             }
         }
