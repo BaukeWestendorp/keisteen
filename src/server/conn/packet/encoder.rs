@@ -66,8 +66,10 @@ impl<W: io::Write> PacketEncoder<W> {
                 packet_id.to_writer(writer)?;
                 data.to_writer(writer)?;
             }
-            PacketEncoder::Compressed { writer, .. } => {
+            PacketEncoder::Compressed { writer, threshold, level } => {
                 // TODO: Implement compression.
+                let _ = threshold;
+                let _ = level;
 
                 packet_length.to_writer(writer)?;
                 packet_id.to_writer(writer)?;

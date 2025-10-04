@@ -134,19 +134,20 @@ impl Connection {
     }
 
     pub(crate) fn enable_compression(&mut self) -> KeisteenResult<()> {
-        // // TODO: Add the threshold to the config.
-        // let threshold = 256;
-        // // TODO: Add the level to the config.
-        // let level = 3;
+        // TODO: Add the threshold to the config.
+        let threshold = 256;
+        // TODO: Add the level to the config.
+        let level = 3;
 
-        // self.writer.enable_compression(threshold, level)?;
-        // self.reader.enable_compression()?;
+        self.writer.enable_compression(threshold, level)?;
+        self.reader.enable_compression()?;
 
+        // TODO: Actually enable compression.
         // self.send_packet(CLoginPacket::SetCompression {
         //     threshold: VarInt::new(threshold as i32),
         // })?;
 
-        // log::debug!("compression enabled");
+        log::debug!("compression enabled");
 
         Ok(())
     }
