@@ -42,13 +42,12 @@ impl CryptKeys {
         rsa::RsaPrivateKey::new(&mut rng, 1024).expect("failed to generate a key")
     }
 
-    pub fn generate_encryption_request_packet(&self) -> CLoginPacket {
+    pub fn generate_encryption_request_packet(&self, should_authenticate: bool) -> CLoginPacket {
         CLoginPacket::EncryptionRequest {
             server_id: "".to_string(),
             public_key: self.public_key_der.clone(),
             verify_token: self.verification_token.to_vec(),
-            // TODO:
-            should_authenticate: false,
+            should_authenticate,
         }
     }
 }
