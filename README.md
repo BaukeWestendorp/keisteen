@@ -113,8 +113,8 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] resource-pack-id
       - [ ] resource-pack-prompt
       - [ ] resource-pack-sha1
-      - [ ] server-ip
-      - [ ] server-port
+      - [x] server-ip
+      - [x] server-port
       - [ ] simulation-distance
       - [ ] spawn-protection
       - [ ] status-heartbeat-interval
