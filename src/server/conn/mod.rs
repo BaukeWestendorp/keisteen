@@ -7,7 +7,7 @@ use eyre::bail;
 use crate::error::KeisteenResult;
 use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
-use crate::protocol::packet::{PacketData, RawPacket};
+use crate::protocol::packet::{ClientboundPacket, PacketData, RawPacket};
 use crate::server::ServerHandle;
 use crate::server::player_profile::PlayerProfile;
 use crate::types::VarInt;
@@ -150,7 +150,7 @@ impl Connection {
         Ok(())
     }
 
-    pub fn send_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
+    pub fn send_packet<P: ClientboundPacket>(&mut self, packet: P) -> io::Result<()> {
         self.writer.write_packet(packet)
     }
 
@@ -205,30 +205,33 @@ impl<W: io::Write> PacketWriter<W> {
         Ok(())
     }
 
-    pub fn write_packet(&mut self, packet: impl Into<RawPacket>) -> io::Result<()> {
-        let packet = packet.into();
+    pub fn write_packet<P: ClientboundPacket>(&mut self, packet: P) -> io::Result<()> {
+        let packet_id = VarInt::new(packet.packet_id());
+        let mut data = PacketData::new();
+        packet.encode(&mut data);
+        let packet_length = VarInt::new((packet_id.len() + data.bytes().len()) as i32);
 
         let mut buf = Vec::new();
-        packet.packet_id.to_writer(&mut buf)?;
-        packet.data.to_writer(&mut buf)?;
+        packet_id.to_writer(&mut buf)?;
+        data.to_writer(&mut buf)?;
 
         match self {
             PacketWriter::Raw(Some(writer)) => {
-                packet.length().to_writer(writer)?;
-                packet.packet_id.to_writer(writer)?;
-                packet.data.to_writer(writer)?;
+                packet_length.to_writer(writer)?;
+                packet_id.to_writer(writer)?;
+                data.to_writer(writer)?;
             }
             PacketWriter::Encrypted(Some(writer)) => {
-                packet.length().to_writer(writer)?;
-                packet.packet_id.to_writer(writer)?;
-                packet.data.to_writer(writer)?;
+                packet_length.to_writer(writer)?;
+                packet_id.to_writer(writer)?;
+                data.to_writer(writer)?;
             }
             PacketWriter::Compressed { writer, .. } => {
                 // TODO: Implement compression.
 
-                packet.length().to_writer(writer)?;
-                packet.packet_id.to_writer(writer)?;
-                packet.data.to_writer(writer)?;
+                packet_length.to_writer(writer)?;
+                packet_id.to_writer(writer)?;
+                data.to_writer(writer)?;
             }
             _ => unreachable!(),
         }

@@ -1,6 +1,5 @@
 use crate::error::KeisteenResult;
-use crate::protocol::packet::ServerboundPacket;
-use crate::types::VarInt;
+use crate::protocol::packet::{ClientboundPacket, ServerboundPacket};
 
 use super::{PacketData, RawPacket};
 
@@ -10,25 +9,22 @@ pub enum CStatusPacket {
     PongResponse { timestamp: i64 },
 }
 
-impl From<CStatusPacket> for RawPacket {
-    fn from(packet: CStatusPacket) -> Self {
-        match packet {
-            CStatusPacket::StatusResponse { json_response } => RawPacket {
-                packet_id: VarInt::new(0x00),
-                data: {
-                    let mut data = PacketData::new();
-                    data.write_all(json_response);
-                    data
-                },
-            },
-            CStatusPacket::PongResponse { timestamp } => RawPacket {
-                packet_id: VarInt::new(0x01),
-                data: {
-                    let mut data = PacketData::new();
-                    data.write_all(timestamp);
-                    data
-                },
-            },
+impl ClientboundPacket for CStatusPacket {
+    fn encode(self, data: &mut PacketData) {
+        match self {
+            CStatusPacket::StatusResponse { json_response } => {
+                data.write_all(json_response);
+            }
+            CStatusPacket::PongResponse { timestamp } => {
+                data.write_all(timestamp);
+            }
+        }
+    }
+
+    fn packet_id(&self) -> i32 {
+        match self {
+            CStatusPacket::StatusResponse { .. } => 0x00,
+            CStatusPacket::PongResponse { .. } => 0x01,
         }
     }
 }

@@ -1,7 +1,7 @@
 use uuid::Uuid;
 
 use crate::error::KeisteenResult;
-use crate::protocol::packet::ServerboundPacket;
+use crate::protocol::packet::{ClientboundPacket, ServerboundPacket};
 use crate::types::{Identifier, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -34,46 +34,42 @@ pub enum CLoginPacket {
     },
 }
 
-impl From<CLoginPacket> for RawPacket {
-    fn from(packet: CLoginPacket) -> Self {
-        match packet {
+impl ClientboundPacket for CLoginPacket {
+    fn encode(self, data: &mut PacketData) {
+        match self {
             CLoginPacket::Disconnected { .. } => todo!(),
             CLoginPacket::EncryptionRequest {
                 server_id,
                 public_key,
                 verify_token,
                 should_authenticate,
-            } => RawPacket {
-                packet_id: VarInt::new(0x01),
-                data: {
-                    let mut data = PacketData::new();
-                    data.write_all(server_id);
-                    data.write_all_prefixed(public_key);
-                    data.write_all_prefixed(verify_token);
-                    data.write_all(should_authenticate);
-                    data
-                },
-            },
-            CLoginPacket::LoginSuccess { uuid, username, .. } => RawPacket {
-                packet_id: VarInt::new(0x02),
-                data: {
-                    let mut data = PacketData::new();
-                    data.write_all(uuid);
-                    data.write_all(username);
-                    data.write_all_prefixed(Vec::<()>::new()); // TODO: Write properties.
-                    data
-                },
-            },
-            CLoginPacket::SetCompression { threshold } => RawPacket {
-                packet_id: VarInt::new(0x03),
-                data: {
-                    let mut data = PacketData::new();
-                    data.write_all(threshold);
-                    data
-                },
-            },
+            } => {
+                data.write_all(server_id);
+                data.write_all_prefixed(public_key);
+                data.write_all_prefixed(verify_token);
+                data.write_all(should_authenticate);
+            }
+            CLoginPacket::LoginSuccess { uuid, username, .. } => {
+                data.write_all(uuid);
+                data.write_all(username);
+                data.write_all_prefixed(Vec::<()>::new()); // TODO: Write properties.
+            }
+            CLoginPacket::SetCompression { threshold } => {
+                data.write_all(threshold);
+            }
             CLoginPacket::LoginPluginRequest { .. } => todo!(),
             CLoginPacket::CookieRequest { .. } => todo!(),
+        }
+    }
+
+    fn packet_id(&self) -> i32 {
+        match self {
+            CLoginPacket::Disconnected { .. } => 0x00,
+            CLoginPacket::EncryptionRequest { .. } => 0x01,
+            CLoginPacket::LoginSuccess { .. } => 0x02,
+            CLoginPacket::SetCompression { .. } => 0x03,
+            CLoginPacket::LoginPluginRequest { .. } => 0x04,
+            CLoginPacket::CookieRequest { .. } => 0x05,
         }
     }
 }

@@ -33,6 +33,12 @@ pub trait ServerboundPacket {
     }
 }
 
+pub trait ClientboundPacket {
+    fn packet_id(&self) -> i32;
+
+    fn encode(self, data: &mut PacketData);
+}
+
 #[derive(Debug)]
 pub struct RawPacket {
     pub packet_id: VarInt,

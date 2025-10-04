@@ -1,5 +1,5 @@
 use crate::error::KeisteenResult;
-use crate::protocol::packet::ServerboundPacket;
+use crate::protocol::packet::{ClientboundPacket, ServerboundPacket};
 use crate::types::{Identifier, Position, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -32,9 +32,9 @@ pub enum CPlayPacket {
     },
 }
 
-impl From<CPlayPacket> for RawPacket {
-    fn from(packet: CPlayPacket) -> Self {
-        match packet {
+impl ClientboundPacket for CPlayPacket {
+    fn encode(self, data: &mut PacketData) {
+        match self {
             CPlayPacket::Login {
                 entity_id,
                 is_hardcore,
@@ -58,39 +58,40 @@ impl From<CPlayPacket> for RawPacket {
                 portal_cooldown,
                 sea_level,
                 enforces_secure_chat,
-            } => RawPacket {
-                packet_id: VarInt::new(0x2B),
-                data: {
-                    let mut data = PacketData::new();
-                    data.write_all(entity_id);
-                    data.write_all(is_hardcore);
-                    data.write_all_prefixed(dimension_names);
-                    data.write_all(max_players);
-                    data.write_all(view_distance);
-                    data.write_all(simulation_distance);
-                    data.write_all(reduced_debug_info);
-                    data.write_all(enable_respawn_screen);
-                    data.write_all(do_limited_crafting);
-                    data.write_all(dimension_type);
-                    data.write_all(dimension_name);
-                    data.write_all(hashed_seed);
-                    data.write_all(game_mode);
-                    data.write_all(previous_game_mode);
-                    data.write_all(is_debug);
-                    data.write_all(is_flat);
-                    data.write_all(has_death_location);
-                    if has_death_location {
-                        data.write_all(death_dimension);
-                    }
-                    if has_death_location {
-                        data.write_all(death_location);
-                    }
-                    data.write_all(portal_cooldown);
-                    data.write_all(sea_level);
-                    data.write_all(enforces_secure_chat);
-                    data
-                },
-            },
+            } => {
+                data.write_all(entity_id);
+                data.write_all(is_hardcore);
+                data.write_all_prefixed(dimension_names);
+                data.write_all(max_players);
+                data.write_all(view_distance);
+                data.write_all(simulation_distance);
+                data.write_all(reduced_debug_info);
+                data.write_all(enable_respawn_screen);
+                data.write_all(do_limited_crafting);
+                data.write_all(dimension_type);
+                data.write_all(dimension_name);
+                data.write_all(hashed_seed);
+                data.write_all(game_mode);
+                data.write_all(previous_game_mode);
+                data.write_all(is_debug);
+                data.write_all(is_flat);
+                data.write_all(has_death_location);
+                if has_death_location {
+                    data.write_all(death_dimension);
+                }
+                if has_death_location {
+                    data.write_all(death_location);
+                }
+                data.write_all(portal_cooldown);
+                data.write_all(sea_level);
+                data.write_all(enforces_secure_chat);
+            }
+        }
+    }
+
+    fn packet_id(&self) -> i32 {
+        match self {
+            CPlayPacket::Login { .. } => 0x2B,
         }
     }
 }
