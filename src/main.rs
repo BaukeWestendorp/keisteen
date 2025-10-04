@@ -1,5 +1,5 @@
-use craft::server::conn::ConnectionManager;
-use craft::server::{Server, ServerHandle};
+use keisteen::server::conn::ConnectionManager;
+use keisteen::server::{Server, ServerHandle};
 
 fn main() {
     pretty_env_logger::init();

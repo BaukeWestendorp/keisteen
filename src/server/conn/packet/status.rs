@@ -15,7 +15,7 @@ impl Connection {
                     },
                     players: Some(StatusResponsePlayers { max: 20, online: 0, sample: None }),
                     description: Some(TextComponent {
-                        text: Some("A Minecraft Server".to_string()),
+                        text: Some("A Minecraft Keisteen Server".to_string()),
                         translate: None,
                         color: None,
                     }),

@@ -1,4 +1,3 @@
-use std::io::Write;
 use std::net::{Shutdown, TcpListener, TcpStream, ToSocketAddrs};
 use std::{io, thread};
 
