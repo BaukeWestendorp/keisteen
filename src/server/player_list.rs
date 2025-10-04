@@ -5,13 +5,13 @@ use crate::server::player::Player;
 
 #[derive(Debug)]
 pub struct PlayerList {
-    max_players: u32,
+    max_players: i32,
 
     players: Vec<Player>,
 }
 
 impl PlayerList {
-    pub(crate) fn new(max_players: u32) -> Self {
+    pub(crate) fn new(max_players: i32) -> Self {
         Self { max_players, players: Vec::new() }
     }
 
@@ -23,11 +23,11 @@ impl PlayerList {
         self.players.iter().find(|p| p.profile().uuid() == uuid)
     }
 
-    pub fn online_players(&self) -> u32 {
-        self.players.len() as u32
+    pub fn online_players(&self) -> i32 {
+        self.players.len() as i32
     }
 
-    pub fn max_players(&self) -> u32 {
+    pub fn max_players(&self) -> i32 {
         self.max_players
     }
 

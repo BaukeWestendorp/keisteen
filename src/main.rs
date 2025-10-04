@@ -26,6 +26,7 @@ fn main() {
 
     let address = format!("{}:{}", IP, port);
 
-    let handle = ServerHandle::new(Server::new(path));
+    let server = Server::new(path).expect("should create server");
+    let handle = ServerHandle::new(server);
     ConnectionManager::new(handle).bind(address).expect("should start server");
 }
