@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io;
 
 pub const TAG_END: u8 = 0;
 pub const TAG_BYTE: u8 = 1;

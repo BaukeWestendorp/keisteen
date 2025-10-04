@@ -7,15 +7,15 @@ impl VarInt {
     pub const SEGMENT_BITS: u8 = 0x7F;
     pub const CONTINUE_BIT: u8 = 0x80;
 
-    pub fn new(raw: i32) -> Self {
+    pub const fn new(raw: i32) -> Self {
         Self(raw)
     }
 
-    pub fn raw(&self) -> i32 {
+    pub const fn raw(&self) -> i32 {
         self.0
     }
 
-    pub fn len(&self) -> usize {
+    pub const fn len(&self) -> usize {
         let mut n = self.0 as u64;
         let mut len = 1;
         while n >= Self::CONTINUE_BIT as u64 {

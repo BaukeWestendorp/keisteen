@@ -1,5 +1,8 @@
+use crate::types::VarInt;
+
 pub const BRAND: &str = "Craft";
 pub const MC_VERSION: &str = "1.18.2";
+pub const MC_PROTOCOL: VarInt = VarInt::new(772);
 
 pub mod error;
 pub mod nbt;
