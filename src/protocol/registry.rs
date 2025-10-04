@@ -5,7 +5,8 @@ use std::path::PathBuf;
 use crate::text::style::Style;
 use crate::text::text_component::TextComponent;
 use crate::types::Identifier;
-use crate::worldgen::IntProvider;
+use crate::util::IntProvider;
+use crate::world::biome::Biome;
 
 #[derive(Debug)]
 pub struct Registries {
@@ -24,7 +25,7 @@ pub struct Registries {
     trim_pattern: BTreeMap<Identifier, TrimPattern>,
     wolf_sound_variant: BTreeMap<Identifier, WolfSoundVariant>,
     wolf_variant: BTreeMap<Identifier, WolfVariant>,
-    worldgen_biome: BTreeMap<Identifier, WorldgenBiome>,
+    worldgen_biome: BTreeMap<Identifier, Biome>,
 }
 
 impl Registries {
@@ -112,7 +113,7 @@ impl Registries {
         &self.wolf_variant
     }
 
-    pub fn worldgen_biome(&self) -> &BTreeMap<Identifier, WorldgenBiome> {
+    pub fn worldgen_biome(&self) -> &BTreeMap<Identifier, Biome> {
         &self.worldgen_biome
     }
 }
@@ -148,7 +149,8 @@ pub trait Registry: serde::Serialize {
         Self: Sized + for<'de> serde::Deserialize<'de>,
     {
         let reader = fs::File::open(path).unwrap();
-        serde_json::from_reader(reader).unwrap()
+        serde_json::from_reader(reader)
+            .expect(format!("Failed to load asset from {}", path.display()).as_str())
     }
 }
 
@@ -413,13 +415,7 @@ pub struct WolfVariantAssets {
     angry: Identifier,
 }
 
-#[derive(Debug, Clone)]
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct WorldgenBiome {
-    // TODO: Implement WorldgenBiome Registry
-}
-
-impl Registry for WorldgenBiome {
+impl Registry for Biome {
     fn identifier() -> Identifier {
         Identifier::new("minecraft", "worldgen/biome").unwrap()
     }
