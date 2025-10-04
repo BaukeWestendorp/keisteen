@@ -1,6 +1,5 @@
-use eyre::bail;
-
-use crate::error::KeisteenError;
+use crate::error::KeisteenResult;
+use crate::protocol::packet::ServerboundPacket;
 use crate::types::VarInt;
 
 use super::{PacketData, RawPacket};
@@ -40,14 +39,12 @@ pub enum SStatusPacket {
     PingRequest { timestamp: i64 },
 }
 
-impl TryFrom<RawPacket> for SStatusPacket {
-    type Error = KeisteenError;
-
-    fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
-        match packet.packet_id.raw() {
+impl ServerboundPacket for SStatusPacket {
+    fn decode(mut raw: RawPacket) -> KeisteenResult<Self> {
+        match raw.packet_id.raw() {
             0x00 => Ok(Self::StatusRequest),
-            0x01 => Ok(Self::PingRequest { timestamp: packet.data.read()? }),
-            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
+            0x01 => Ok(Self::PingRequest { timestamp: raw.data.read()? }),
+            id => Self::handle_invalid_packet_id(id),
         }
     }
 }

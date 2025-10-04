@@ -1,7 +1,7 @@
-use eyre::bail;
 use uuid::Uuid;
 
-use crate::error::KeisteenError;
+use crate::error::KeisteenResult;
+use crate::protocol::packet::ServerboundPacket;
 use crate::types::{Identifier, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -87,23 +87,21 @@ pub enum SLoginPacket {
     CookieResponse { key: Identifier, payload: Vec<u8> },
 }
 
-impl TryFrom<RawPacket> for SLoginPacket {
-    type Error = KeisteenError;
-
-    fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
-        match packet.packet_id.raw() {
+impl ServerboundPacket for SLoginPacket {
+    fn decode(mut raw: RawPacket) -> KeisteenResult<Self> {
+        match raw.packet_id.raw() {
             0x00 => Ok(SLoginPacket::LoginStart {
-                name: packet.data.read()?,
-                player_uuid: packet.data.read()?,
+                name: raw.data.read()?,
+                player_uuid: raw.data.read()?,
             }),
             0x01 => Ok(SLoginPacket::EncryptionResponse {
-                shared_secret: packet.data.read_prefixed()?,
-                verify_token: packet.data.read_prefixed()?,
+                shared_secret: raw.data.read_prefixed()?,
+                verify_token: raw.data.read_prefixed()?,
             }),
             0x02 => todo!(),
             0x03 => Ok(SLoginPacket::LoginAcknowledged),
             0x04 => todo!(),
-            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
+            id => Self::handle_invalid_packet_id(id),
         }
     }
 }

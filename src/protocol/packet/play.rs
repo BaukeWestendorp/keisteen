@@ -1,4 +1,5 @@
-use crate::error::KeisteenError;
+use crate::error::KeisteenResult;
+use crate::protocol::packet::ServerboundPacket;
 use crate::types::{Identifier, Position, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -100,12 +101,10 @@ pub enum SPlayPacket {
     PingRequest { timestamp: i64 },
 }
 
-impl TryFrom<RawPacket> for SPlayPacket {
-    type Error = KeisteenError;
-
-    fn try_from(packet: RawPacket) -> Result<Self, Self::Error> {
-        match packet.packet_id.raw() {
-            packet_id => todo!("implement play packet {packet_id}"),
+impl ServerboundPacket for SPlayPacket {
+    fn decode(raw: RawPacket) -> KeisteenResult<Self> {
+        match raw.packet_id.raw() {
+            id => todo!("implement play packet {id}"),
         }
     }
 }

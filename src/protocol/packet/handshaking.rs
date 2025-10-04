@@ -1,6 +1,5 @@
-use eyre::bail;
-
-use crate::error::KeisteenError;
+use crate::error::KeisteenResult;
+use crate::protocol::packet::ServerboundPacket;
 use crate::server::conn::ConnectionState;
 use crate::types::VarInt;
 
@@ -17,23 +16,21 @@ pub enum SHandshakingPacket {
     // TODO: LegacyServerListPing
 }
 
-impl TryFrom<RawPacket> for SHandshakingPacket {
-    type Error = KeisteenError;
-
-    fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
-        match packet.packet_id.raw() {
+impl ServerboundPacket for SHandshakingPacket {
+    fn decode(mut raw: RawPacket) -> KeisteenResult<Self> {
+        match raw.packet_id.raw() {
             0x00 => Ok(Self::Handshake {
-                protocol_version: packet.data.read()?,
-                server_address: packet.data.read()?,
-                server_port: packet.data.read()?,
-                intent: match packet.data.read::<VarInt>()?.raw() {
+                protocol_version: raw.data.read()?,
+                server_address: raw.data.read()?,
+                server_port: raw.data.read()?,
+                intent: match raw.data.read::<VarInt>()?.raw() {
                     1 => ConnectionState::Status,
                     2 => ConnectionState::Login,
                     3 => ConnectionState::Transfer,
-                    _ => unreachable!(),
+                    _ => unreachable!("invalid intent value"),
                 },
             }),
-            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
+            id => Self::handle_invalid_packet_id(id),
         }
     }
 }

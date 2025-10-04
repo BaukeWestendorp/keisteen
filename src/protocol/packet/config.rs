@@ -1,10 +1,10 @@
 use std::io;
 
-use eyre::bail;
-
-use crate::error::{KeisteenError, KeisteenResult};
+use crate::error::KeisteenResult;
 use crate::nbt;
-use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolRead, ProtocolWrite};
+use crate::protocol::packet::{
+    PacketData, PrefixedProtocolWrite, ProtocolRead, ProtocolWrite, ServerboundPacket,
+};
 use crate::types::{Identifier, VarInt};
 
 use super::RawPacket;
@@ -84,6 +84,20 @@ impl From<CConfigPacket> for RawPacket {
 }
 
 #[derive(Debug)]
+pub struct RegistryDataEntry {
+    pub entry_id: Identifier,
+    pub data: Option<nbt::NbtTag>,
+}
+
+impl ProtocolWrite for RegistryDataEntry {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+        self.entry_id.write_all(writer)?;
+        self.data.prefixed_write_all(writer)?;
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
 pub enum SConfigPacket {
     ClientInformation {
         locale: String,
@@ -111,50 +125,34 @@ pub enum SConfigPacket {
     CustomClickAction,
 }
 
-impl TryFrom<RawPacket> for SConfigPacket {
-    type Error = KeisteenError;
-
-    fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
-        match packet.packet_id.raw() {
+impl ServerboundPacket for SConfigPacket {
+    fn decode(mut raw: RawPacket) -> KeisteenResult<Self> {
+        match raw.packet_id.raw() {
             0x00 => Ok(Self::ClientInformation {
-                locale: packet.data.read()?,
-                view_distance: packet.data.read()?,
-                chat_mode: packet.data.read()?,
-                chat_colors: packet.data.read()?,
-                displayed_skin_parts: packet.data.read()?,
-                main_hand: packet.data.read()?,
-                enable_text_filtering: packet.data.read()?,
-                allow_server_listing: packet.data.read()?,
-                particle_status: packet.data.read()?,
+                locale: raw.data.read()?,
+                view_distance: raw.data.read()?,
+                chat_mode: raw.data.read()?,
+                chat_colors: raw.data.read()?,
+                displayed_skin_parts: raw.data.read()?,
+                main_hand: raw.data.read()?,
+                enable_text_filtering: raw.data.read()?,
+                allow_server_listing: raw.data.read()?,
+                particle_status: raw.data.read()?,
             }),
             0x01 => todo!(),
             0x02 => {
-                let channel = packet.data.read()?;
-                let data_len = packet.data.bytes().len();
-                Ok(Self::PluginMessage { channel, data: packet.data.read_predefined(data_len)? })
+                let channel = raw.data.read()?;
+                let data_len = raw.data.bytes().len();
+                Ok(Self::PluginMessage { channel, data: raw.data.read_predefined(data_len)? })
             }
             0x03 => Ok(Self::AcknowledgeFinishConfig),
             0x04 => todo!(),
             0x05 => todo!(),
             0x06 => todo!(),
-            0x07 => Ok(Self::KnownPacks { known_packs: packet.data.read_prefixed()? }),
+            0x07 => Ok(Self::KnownPacks { known_packs: raw.data.read_prefixed()? }),
             0x08 => todo!(),
-            packet_id => bail!("invalid packet id: {packet_id:#04x}"),
+            id => Self::handle_invalid_packet_id(id),
         }
-    }
-}
-
-#[derive(Debug)]
-pub struct RegistryDataEntry {
-    pub entry_id: Identifier,
-    pub data: Option<nbt::NbtTag>,
-}
-
-impl ProtocolWrite for RegistryDataEntry {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-        self.entry_id.write_all(writer)?;
-        self.data.prefixed_write_all(writer)?;
-        Ok(())
     }
 }
 

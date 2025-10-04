@@ -1,9 +1,18 @@
 use std::io;
 use std::str::FromStr;
 
+use eyre::{Context, bail};
+use uuid::Uuid;
+
 use crate::error::KeisteenResult;
 use crate::nbt;
 use crate::types::{Identifier, Position, VarInt};
+
+pub use config::*;
+pub use handshaking::*;
+pub use login::*;
+pub use play::*;
+pub use status::*;
 
 mod config;
 mod handshaking;
@@ -11,13 +20,18 @@ mod login;
 mod play;
 mod status;
 
-pub use config::*;
-use eyre::{Context, bail};
-pub use handshaking::*;
-pub use login::*;
-pub use play::*;
-pub use status::*;
-use uuid::Uuid;
+pub trait ServerboundPacket {
+    fn decode(raw: RawPacket) -> KeisteenResult<Self>
+    where
+        Self: Sized;
+
+    fn handle_invalid_packet_id(id: i32) -> KeisteenResult<Self>
+    where
+        Self: Sized,
+    {
+        bail!("invalid packet id: {id:#04x}");
+    }
+}
 
 #[derive(Debug)]
 pub struct RawPacket {
