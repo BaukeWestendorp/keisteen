@@ -39,11 +39,9 @@ impl ServerboundPacket for Start {
 
         // TODO: Implement authentication with Mojang's servers.
         let should_authenticate = false;
-        let packet = conn
-            .server()
-            .read()
-            .crypt_keys()
-            .generate_encryption_request_packet(should_authenticate);
+        let packet = conn.server().read(|server| {
+            server.crypt_keys().generate_encryption_request_packet(should_authenticate)
+        });
 
         conn.send_packet(packet)?;
 
@@ -68,12 +66,13 @@ impl ServerboundPacket for EncryptionResponse {
     }
 
     fn handle(&self, conn: &mut Connection) -> KeisteenResult<()> {
-        let server = conn.server().read();
-        let crypt_keys = &server.crypt_keys();
-        if !crypt_keys.verify_token(&self.verify_token).expect("should verify token") {
-            bail!("verification tokens are not the same");
-        }
-        drop(server);
+        conn.server().read(|server| {
+            if !server.crypt_keys().verify_token(&self.verify_token).expect("should verify token") {
+                bail!("verification tokens are not the same");
+            }
+
+            Ok(())
+        })?;
 
         conn.enable_encryption(&self.shared_secret).wrap_err("failed to enable encryption")?;
         conn.enable_compression().wrap_err("failed to enable compression")?;

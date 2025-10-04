@@ -1,9 +1,9 @@
-use std::sync::atomic::AtomicI32;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 const ENTITY_ID_COUNTER: AtomicI32 = AtomicI32::new(0);
 
 fn next_entity_id() -> i32 {
-    ENTITY_ID_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+    ENTITY_ID_COUNTER.fetch_add(1, Ordering::SeqCst)
 }
 
 #[derive(Debug)]

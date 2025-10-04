@@ -26,12 +26,32 @@ impl ServerboundPacket for StatusRequest {
     }
 
     fn handle(&self, conn: &mut Connection) -> KeisteenResult<()> {
+        let (max, online, sample) = conn.server().read(|server| {
+            let player_list = server.player_list();
+            let max = player_list.max_players() as i32;
+            let online = player_list.online_players() as i32;
+            let sample = if online > 0 {
+                let players = player_list.players().iter().take(12);
+                let sample = players
+                    .map(|p| StatusResponsePlayerSample {
+                        name: p.profile().username().to_string(),
+                        id: p.profile().uuid(),
+                    })
+                    .collect();
+                Some(sample)
+            } else {
+                None
+            };
+
+            (max, online, sample)
+        });
+
         let json_response = serde_json::to_string(&StatusResponse {
             version: StatusResponseVersion {
                 name: crate::MC_VERSION.to_string(),
                 protocol: Some(crate::MC_PROTOCOL.raw()),
             },
-            players: Some(StatusResponsePlayers { max: 20, online: 0, sample: None }),
+            players: Some(StatusResponsePlayers { max, online, sample }),
             description: Some(TextComponent {
                 text: Some("A Minecraft Keisteen Server".to_string()),
                 translate: None,
@@ -99,7 +119,7 @@ impl ServerboundPacket for PingRequest {
 
     fn handle(&self, conn: &mut Connection) -> KeisteenResult<()> {
         conn.send_packet(client::status::PongResponse { timestamp: self.timestamp })?;
-        conn.close()?;
+        conn.disconnect(None);
         Ok(())
     }
 }

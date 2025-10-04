@@ -10,6 +10,7 @@ use crate::protocol::packet::server::ServerboundPacket;
 use crate::protocol::packet::{RawPacket, client};
 use crate::protocol::registry::Registry;
 use crate::server::conn::{Connection, ConnectionState};
+use crate::server::player::Player;
 use crate::types::{Identifier, VarInt};
 
 pub fn handle_raw_packet(raw: RawPacket, conn: &mut Connection) -> KeisteenResult<()> {
@@ -118,6 +119,56 @@ impl ServerboundPacket for AcknowledgeFinishConfig {
     fn handle(&self, conn: &mut Connection) -> KeisteenResult<()> {
         log::debug!("configuration acknowledged");
         conn.state = ConnectionState::Play;
+
+        let player_profile = conn.player_profile().clone();
+
+        let can_log_in = conn
+            .server()
+            .read(|server| server.player_list().can_player_login(player_profile.uuid()));
+        if let Err(reason) = can_log_in {
+            log::error!("Player could not log in: {reason}");
+            conn.disconnect(Some(reason));
+            return Ok(());
+        }
+
+        let player = Player::new(player_profile);
+        let player_entity_id = player.entity_id();
+        let max_players = conn.server().read(|server| server.player_list().max_players());
+
+        conn.server().update(|server| {
+            server.player_list_mut().add_player(player);
+        });
+
+        conn.send_packet(client::play::Login {
+            entity_id: player_entity_id,
+            is_hardcore: false, // TODO: Read from server config.
+            dimension_names: // TODO: Implement,
+                vec![
+                    Identifier::new("minecraft", "overworld").unwrap(),
+                    Identifier::new("minecraft", "the_nether").unwrap(),
+                    Identifier::new("minecraft", "the_end").unwrap(),
+                ],
+            max_players: VarInt::new(max_players as i32),
+            view_distance: VarInt::new(10), // TODO: Read from server config.
+            simulation_distance: VarInt::new(10), // TODO: Read from server config.
+            reduced_debug_info: false, // TODO: Implement.
+            enable_respawn_screen: true, // TODO: Implement.
+            do_limited_crafting: false, // TODO: Implement.
+            dimension_type: VarInt::new(0), // TODO: Read from server config.
+            dimension_name: Identifier::new("minecraft", "overworld").unwrap(), // TODO: Read from server config.
+            hashed_seed: 0, // TODO: Implement.
+            game_mode: 0, // TODO: Implement.
+            previous_game_mode: -1, // TODO: Implement.
+            is_debug: false, // TODO: Implement.
+            is_flat: false, // TODO: Implement.
+            has_death_location: false, // TODO: Implement.
+            death_dimension: None, // TODO: Implement.
+            death_location: None, // TODO: Implement.
+            portal_cooldown: VarInt::new(0), // TODO: Implement.
+            sea_level: VarInt::new(64), // TODO: Implement.
+            enforces_secure_chat: false, // TODO: Implement.
+        })?;
+
         Ok(())
     }
 }
@@ -197,10 +248,9 @@ impl ServerboundPacket for KnownPacks {
 
 impl KnownPacks {
     fn send_registry_data_packets(&self, conn: &mut Connection) -> KeisteenResult<()> {
-        let packets = {
-            let server = conn.server().read();
+        let packets = conn.server().read(|server| -> KeisteenResult<_> {
             let registries = server.registries();
-            vec![
+            Ok(vec![
                 create_packet(registries.banner_pattern())?,
                 create_packet(registries.cat_variant())?,
                 create_packet(registries.chat_type())?,
@@ -217,8 +267,8 @@ impl KnownPacks {
                 create_packet(registries.wolf_sound_variant())?,
                 create_packet(registries.wolf_variant())?,
                 // TODO: create_packet(registries.worldgen_biome())?,
-            ]
-        };
+            ])
+        })?;
 
         for packet in packets {
             conn.send_packet(packet)?;
