@@ -65,12 +65,18 @@ impl ServerConfig {
 #[serde(default)]
 pub struct ServerProperties {
     pub max_players: i32,
+    pub motd: String,
     pub server_ip: Ipv4Addr,
     pub server_port: u16,
 }
 
 impl Default for ServerProperties {
     fn default() -> Self {
-        Self { max_players: 20, server_ip: Ipv4Addr::UNSPECIFIED, server_port: 25565 }
+        Self {
+            max_players: 20,
+            motd: "A Keisteen Minecraft Server".to_string(),
+            server_ip: Ipv4Addr::UNSPECIFIED,
+            server_port: 25565,
+        }
     }
 }

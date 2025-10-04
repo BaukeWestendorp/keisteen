@@ -96,7 +96,7 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [x] max-players
       - [ ] max-tick-time
       - [ ] max-world-size
-      - [ ] motd
+      - [x] motd
       - [ ] network-compression-threshold
       - [ ] online-mode
       - [ ] op-permission-level

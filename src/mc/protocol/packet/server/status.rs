@@ -46,17 +46,16 @@ impl ServerboundPacket for StatusRequest {
             (max, online, sample)
         });
 
+        let motd =
+            conn.server().read(|server| server.server_folder().config().properties().motd.clone());
+
         let json_response = serde_json::to_string(&StatusResponse {
             version: StatusResponseVersion {
                 name: crate::MC_VERSION.to_string(),
                 protocol: Some(crate::MC_PROTOCOL.raw()),
             },
             players: Some(StatusResponsePlayers { max, online, sample }),
-            description: Some(TextComponent {
-                text: Some("A Minecraft Keisteen Server".to_string()),
-                translate: None,
-                color: None,
-            }),
+            description: Some(TextComponent { text: Some(motd), translate: None, color: None }),
             favicon: None,
             enforces_secure_chat: false,
         })
