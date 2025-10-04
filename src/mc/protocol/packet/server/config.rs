@@ -144,7 +144,7 @@ impl ServerboundPacket for AcknowledgeFinishConfig {
 
             client::play::Login {
                 entity_id: player_entity_id,
-                is_hardcore: false, // TODO: Read from server config.
+                is_hardcore: config.properties().hardcore,
                 dimension_names: // TODO: Implement,
                     vec![
                         Identifier::new("minecraft", "overworld").unwrap(),

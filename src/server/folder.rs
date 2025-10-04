@@ -29,8 +29,9 @@ impl ServerFolder {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
 pub struct ServerConfig {
     properties: ServerProperties,
 
@@ -66,10 +67,17 @@ impl ServerConfig {
     }
 }
 
+impl Default for ServerConfig {
+    fn default() -> Self {
+        Self { properties: ServerProperties::default(), enforces_secure_chat: true }
+    }
+}
+
 #[derive(Debug, Clone)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 pub struct ServerProperties {
+    pub hardcore: bool,
     pub max_players: i32,
     pub motd: String,
     pub server_ip: Ipv4Addr,
@@ -79,6 +87,7 @@ pub struct ServerProperties {
 impl Default for ServerProperties {
     fn default() -> Self {
         Self {
+            hardcore: false,
             max_players: 20,
             motd: "A Keisteen Minecraft Server".to_string(),
             server_ip: Ipv4Addr::UNSPECIFIED,
