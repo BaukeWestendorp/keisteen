@@ -1,3 +1,4 @@
+use crate::error::KeisteenResult;
 use crate::protocol::packet::{
     RawPacket, SConfigurationPacket, SHandshakingPacket, SLoginPacket, SStatusPacket,
 };
@@ -9,7 +10,7 @@ pub mod login;
 pub mod status;
 
 impl Connection {
-    pub fn handle_raw_packet(&mut self, packet: RawPacket) -> crate::error::Result<()> {
+    pub fn handle_raw_packet(&mut self, packet: RawPacket) -> KeisteenResult<()> {
         match self.state {
             ConnectionState::Handshaking => {
                 let packet = SHandshakingPacket::try_from(packet)?;

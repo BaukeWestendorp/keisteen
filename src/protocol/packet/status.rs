@@ -1,5 +1,6 @@
 use eyre::bail;
 
+use crate::error::KeisteenError;
 use crate::types::VarInt;
 
 use super::{PacketData, RawPacket};
@@ -40,7 +41,7 @@ pub enum SStatusPacket {
 }
 
 impl TryFrom<RawPacket> for SStatusPacket {
-    type Error = crate::error::Error;
+    type Error = KeisteenError;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {

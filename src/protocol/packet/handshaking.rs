@@ -1,5 +1,6 @@
 use eyre::bail;
 
+use crate::error::KeisteenError;
 use crate::server::conn::ConnectionState;
 use crate::types::VarInt;
 
@@ -18,7 +19,7 @@ pub enum SHandshakingPacket {
 }
 
 impl TryFrom<RawPacket> for SHandshakingPacket {
-    type Error = crate::error::Error;
+    type Error = KeisteenError;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {

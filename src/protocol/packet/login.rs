@@ -1,6 +1,7 @@
 use eyre::bail;
 use uuid::Uuid;
 
+use crate::error::KeisteenError;
 use crate::types::{Identifier, VarInt};
 
 use super::{PacketData, RawPacket};
@@ -87,7 +88,7 @@ pub enum SLoginPacket {
 }
 
 impl TryFrom<RawPacket> for SLoginPacket {
-    type Error = crate::error::Error;
+    type Error = KeisteenError;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {

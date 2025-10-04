@@ -2,10 +2,7 @@ use crate::protocol::packet::SHandshakingPacket;
 use crate::server::conn::Connection;
 
 impl Connection {
-    pub fn handle_handshaking_packet(
-        &mut self,
-        packet: SHandshakingPacket,
-    ) -> crate::error::Result<()> {
+    pub fn handle_handshaking_packet(&mut self, packet: SHandshakingPacket) -> KeisteenResult<()> {
         match packet {
             SHandshakingPacket::Handshake { intent, protocol_version, .. } => {
                 if protocol_version != crate::MC_PROTOCOL {

@@ -2,6 +2,7 @@ use std::io;
 
 use eyre::bail;
 
+use crate::error::{KeisteenError, KeisteenResult};
 use crate::nbt;
 use crate::protocol::packet::{PacketData, PrefixedProtocolWrite, ProtocolRead, ProtocolWrite};
 use crate::types::{Identifier, VarInt};
@@ -111,7 +112,7 @@ pub enum SConfigurationPacket {
 }
 
 impl TryFrom<RawPacket> for SConfigurationPacket {
-    type Error = crate::error::Error;
+    type Error = KeisteenError;
 
     fn try_from(mut packet: RawPacket) -> Result<Self, Self::Error> {
         match packet.packet_id.raw() {
@@ -150,7 +151,7 @@ pub struct RegistryDataEntry {
 }
 
 impl ProtocolWrite for RegistryDataEntry {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         self.entry_id.write_all(writer)?;
         self.data.prefixed_write_all(writer)?;
         Ok(())
@@ -165,7 +166,7 @@ pub struct KnownPack {
 }
 
 impl ProtocolRead for KnownPack {
-    fn read_from<R: io::Read>(reader: &mut R) -> crate::error::Result<Self> {
+    fn read_from<R: io::Read>(reader: &mut R) -> KeisteenResult<Self> {
         Ok(Self {
             namespace: String::read_from(reader)?,
             id: String::read_from(reader)?,
@@ -175,7 +176,7 @@ impl ProtocolRead for KnownPack {
 }
 
 impl ProtocolWrite for KnownPack {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> crate::error::Result<()> {
+    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         self.namespace.write_all(writer)?;
         self.id.write_all(writer)?;
         self.version.write_all(writer)?;

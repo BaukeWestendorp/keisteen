@@ -2,6 +2,8 @@ use std::{fmt, str};
 
 use eyre::{ContextCompat, bail};
 
+use crate::error::{KeisteenError, KeisteenResult};
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Identifier {
     namespace: String,
@@ -9,10 +11,7 @@ pub struct Identifier {
 }
 
 impl Identifier {
-    pub fn new(
-        namespace: impl Into<String>,
-        value: impl Into<String>,
-    ) -> crate::error::Result<Self> {
+    pub fn new(namespace: impl Into<String>, value: impl Into<String>) -> KeisteenResult<Self> {
         let namespace = namespace.into();
         let value = value.into();
 
@@ -48,7 +47,7 @@ impl Identifier {
 }
 
 impl str::FromStr for Identifier {
-    type Err = crate::error::Error;
+    type Err = KeisteenError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split(':');

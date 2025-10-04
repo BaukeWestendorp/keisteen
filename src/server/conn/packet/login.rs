@@ -1,11 +1,12 @@
 use eyre::{Context, bail};
 
+use crate::error::KeisteenResult;
 use crate::protocol::packet::{CLoginPacket, SLoginPacket};
 use crate::server::conn::Connection;
 use crate::server::player_profile::PlayerProfile;
 
 impl Connection {
-    pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> crate::error::Result<()> {
+    pub fn handle_login_packet(&mut self, packet: SLoginPacket) -> KeisteenResult<()> {
         match packet {
             SLoginPacket::LoginStart { name, player_uuid } => {
                 log::info!("{} ({}) wants to log in", name, player_uuid);

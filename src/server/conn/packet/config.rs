@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use crate::error::KeisteenResult;
 use crate::nbt;
 use crate::protocol::packet::{
     CConfigurationPacket, KnownPack, ProtocolWrite, RegistryDataEntry, SConfigurationPacket,
@@ -12,7 +13,7 @@ impl Connection {
     pub fn handle_configuration_packet(
         &mut self,
         packet: SConfigurationPacket,
-    ) -> crate::error::Result<()> {
+    ) -> KeisteenResult<()> {
         match packet {
             SConfigurationPacket::ClientInformation { .. } => {
                 // TODO: Do something with client information.
@@ -49,7 +50,7 @@ impl Connection {
         Ok(())
     }
 
-    pub fn start_configuration(&mut self) -> crate::error::Result<()> {
+    pub fn start_configuration(&mut self) -> KeisteenResult<()> {
         self.state = ConnectionState::Configuration;
         self.send_brand_plugin_message_packet(crate::BRAND)?;
         // TODO: Send Feature Flags
@@ -57,7 +58,7 @@ impl Connection {
         Ok(())
     }
 
-    fn send_brand_plugin_message_packet(&mut self, brand: &str) -> crate::error::Result<()> {
+    fn send_brand_plugin_message_packet(&mut self, brand: &str) -> KeisteenResult<()> {
         let mut data = Vec::new();
         ProtocolWrite::write_all(brand, &mut data)?;
 
@@ -69,7 +70,7 @@ impl Connection {
         Ok(())
     }
 
-    fn send_known_packs_packet(&mut self) -> crate::error::Result<()> {
+    fn send_known_packs_packet(&mut self) -> KeisteenResult<()> {
         // TODO: Actually get known packs.
         let known_packs = vec![KnownPack {
             namespace: "minecraft".to_string(),
@@ -82,7 +83,7 @@ impl Connection {
         Ok(())
     }
 
-    fn send_registry_data_packets(&mut self) -> crate::error::Result<()> {
+    fn send_registry_data_packets(&mut self) -> KeisteenResult<()> {
         let packets = {
             let server = self.server.read();
             let registries = server.registries();
@@ -112,7 +113,7 @@ impl Connection {
 
         fn create_packet<R: Registry + serde::Serialize>(
             registry_entries: &BTreeMap<Identifier, R>,
-        ) -> crate::error::Result<CConfigurationPacket> {
+        ) -> KeisteenResult<CConfigurationPacket> {
             Ok(CConfigurationPacket::RegistryData {
                 registry_id: R::identifier(),
                 entries: {
@@ -132,7 +133,7 @@ impl Connection {
         Ok(())
     }
 
-    fn finish_configuration(&mut self) -> crate::error::Result<()> {
+    fn finish_configuration(&mut self) -> KeisteenResult<()> {
         self.send_packet(CConfigurationPacket::FinishConfiguration)?;
 
         log::debug!("configuration finished");

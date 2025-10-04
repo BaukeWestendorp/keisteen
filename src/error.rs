@@ -1,3 +1,3 @@
-pub type Error = eyre::Report;
+pub type KeisteenError = eyre::Report;
 
-pub type Result<T> = eyre::Result<T>;
+pub type KeisteenResult<T> = eyre::Result<T>;

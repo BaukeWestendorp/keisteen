@@ -4,6 +4,7 @@ use std::{io, thread};
 use aes::cipher::KeyIvInit;
 use eyre::bail;
 
+use crate::error::KeisteenResult;
 use crate::server::crypt::{DecryptionStream, EncryptionStream};
 
 use crate::protocol::packet::{PacketData, RawPacket};
@@ -22,7 +23,7 @@ impl ConnectionManager {
         Self { server }
     }
 
-    pub fn bind<A: ToSocketAddrs>(self, addr: A) -> crate::error::Result<()> {
+    pub fn bind<A: ToSocketAddrs>(self, addr: A) -> KeisteenResult<()> {
         let listener = TcpListener::bind(addr)?;
         log::info!("started listening on {}", listener.local_addr().unwrap());
 
@@ -57,7 +58,7 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn new(stream: TcpStream, server: ServerHandle) -> crate::error::Result<Self> {
+    pub fn new(stream: TcpStream, server: ServerHandle) -> KeisteenResult<Self> {
         Ok(Self {
             is_running: false,
 
@@ -101,7 +102,7 @@ impl Connection {
             .expect("should create thread");
     }
 
-    fn run(&mut self) -> eyre::Result<()> {
+    fn run(&mut self) -> KeisteenResult<()> {
         self.is_running = true;
 
         while self.is_running {
@@ -119,7 +120,7 @@ impl Connection {
         Ok(())
     }
 
-    fn enable_encryption(&mut self, shared_secret: &[u8]) -> crate::error::Result<()> {
+    fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
         let shared_secret =
             self.server.read().crypt_keys().decrypt(shared_secret).expect("should decrypt secret");
 
@@ -131,7 +132,7 @@ impl Connection {
         Ok(())
     }
 
-    pub fn enable_compression(&mut self) -> crate::error::Result<()> {
+    pub fn enable_compression(&mut self) -> KeisteenResult<()> {
         // // TODO: Add the threshold to the config.
         // let threshold = 256;
         // // TODO: Add the level to the config.
@@ -179,7 +180,7 @@ impl<W: io::Write> PacketWriter<W> {
         Self::Raw(Some(writer))
     }
 
-    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> crate::error::Result<()> {
+    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
         let writer = match self {
             Self::Raw(writer) => writer.take().unwrap(),
             Self::Encrypted(_) | Self::Compressed { .. } => bail!("encryption already enabled"),
@@ -192,7 +193,7 @@ impl<W: io::Write> PacketWriter<W> {
         Ok(())
     }
 
-    pub fn enable_compression(&mut self, threshold: u32, level: u32) -> crate::error::Result<()> {
+    pub fn enable_compression(&mut self, threshold: u32, level: u32) -> KeisteenResult<()> {
         let writer = match self {
             Self::Raw(_) => bail!("stream is not encrypted"),
             Self::Encrypted(writer) => writer.take().unwrap(),
@@ -247,7 +248,7 @@ impl<R: io::Read> PacketReader<R> {
         Self::Raw(Some(reader))
     }
 
-    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> crate::error::Result<()> {
+    pub fn enable_encryption(&mut self, shared_secret: &[u8]) -> KeisteenResult<()> {
         let reader = match self {
             Self::Raw(reader) => reader.take().unwrap(),
             Self::Encrypted(_) | Self::Compressed { .. } => bail!("encryption already enabled"),
@@ -260,7 +261,7 @@ impl<R: io::Read> PacketReader<R> {
         Ok(())
     }
 
-    pub fn enable_compression(&mut self) -> crate::error::Result<()> {
+    pub fn enable_compression(&mut self) -> KeisteenResult<()> {
         let reader = match self {
             Self::Raw(_) => bail!("stream is not encrypted"),
             Self::Encrypted(reader) => reader.take().unwrap(),

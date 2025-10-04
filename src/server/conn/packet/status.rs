@@ -1,11 +1,12 @@
 use uuid::Uuid;
 
+use crate::error::KeisteenResult;
 use crate::protocol::packet::{CStatusPacket, SStatusPacket};
 use crate::server::conn::Connection;
 use crate::text::text_component::TextComponent;
 
 impl Connection {
-    pub fn handle_status_packet(&mut self, packet: SStatusPacket) -> crate::error::Result<()> {
+    pub fn handle_status_packet(&mut self, packet: SStatusPacket) -> KeisteenResult<()> {
         match packet {
             SStatusPacket::StatusRequest => {
                 let json_response = serde_json::to_string(&StatusResponse {
