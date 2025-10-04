@@ -71,6 +71,6 @@ pub struct ServerProperties {
 
 impl Default for ServerProperties {
     fn default() -> Self {
-        Self { max_players: 0, server_ip: Ipv4Addr::UNSPECIFIED, server_port: 25565 }
+        Self { max_players: 20, server_ip: Ipv4Addr::UNSPECIFIED, server_port: 25565 }
     }
 }
