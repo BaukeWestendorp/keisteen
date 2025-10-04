@@ -23,6 +23,8 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 			- [x] Send customizable description
 		- [ ] Favicon
 		- [ ] Enforce secure chat
+		  - [x] Send in packets
+			- [ ] Actually enforce
 	- [x] Pong response
 - [ ] Login
 	- [ ] Handle disconnected packet

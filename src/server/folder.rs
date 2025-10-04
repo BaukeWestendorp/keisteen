@@ -33,6 +33,8 @@ impl ServerFolder {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct ServerConfig {
     properties: ServerProperties,
+
+    enforces_secure_chat: bool,
 }
 
 impl ServerConfig {
@@ -57,6 +59,10 @@ impl ServerConfig {
 
     pub fn properties(&self) -> &ServerProperties {
         &self.properties
+    }
+
+    pub fn enforces_secure_chat(&self) -> bool {
+        self.enforces_secure_chat
     }
 }
 

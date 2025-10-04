@@ -139,35 +139,41 @@ impl ServerboundPacket for AcknowledgeFinishConfig {
             server.player_list_mut().add_player(player);
         });
 
-        conn.send_packet(client::play::Login {
-            entity_id: player_entity_id,
-            is_hardcore: false, // TODO: Read from server config.
-            dimension_names: // TODO: Implement,
-                vec![
-                    Identifier::new("minecraft", "overworld").unwrap(),
-                    Identifier::new("minecraft", "the_nether").unwrap(),
-                    Identifier::new("minecraft", "the_end").unwrap(),
-                ],
-            max_players: VarInt::new(max_players as i32),
-            view_distance: VarInt::new(10), // TODO: Read from server config.
-            simulation_distance: VarInt::new(10), // TODO: Read from server config.
-            reduced_debug_info: false, // TODO: Implement.
-            enable_respawn_screen: true, // TODO: Implement.
-            do_limited_crafting: false, // TODO: Implement.
-            dimension_type: VarInt::new(0), // TODO: Read from server config.
-            dimension_name: Identifier::new("minecraft", "overworld").unwrap(), // TODO: Read from server config.
-            hashed_seed: 0, // TODO: Implement.
-            game_mode: 0, // TODO: Implement.
-            previous_game_mode: -1, // TODO: Implement.
-            is_debug: false, // TODO: Implement.
-            is_flat: false, // TODO: Implement.
-            has_death_location: false, // TODO: Implement.
-            death_dimension: None, // TODO: Implement.
-            death_location: None, // TODO: Implement.
-            portal_cooldown: VarInt::new(0), // TODO: Implement.
-            sea_level: VarInt::new(64), // TODO: Implement.
-            enforces_secure_chat: false, // TODO: Implement.
-        })?;
+        let packet = conn.server().read(|server| {
+            let config = server.server_folder().config();
+
+            client::play::Login {
+                entity_id: player_entity_id,
+                is_hardcore: false, // TODO: Read from server config.
+                dimension_names: // TODO: Implement,
+                    vec![
+                        Identifier::new("minecraft", "overworld").unwrap(),
+                        Identifier::new("minecraft", "the_nether").unwrap(),
+                        Identifier::new("minecraft", "the_end").unwrap(),
+                    ],
+                max_players: VarInt::new(max_players as i32),
+                view_distance: VarInt::new(10), // TODO: Get from player data.
+                simulation_distance: VarInt::new(10), // TODO: Get from player data.
+                reduced_debug_info: false, // TODO: Get from game-rule.
+                enable_respawn_screen: true, // TODO: Get from game-rule.
+                do_limited_crafting: false, // TODO: Get from game-rule.
+                dimension_type: VarInt::new(0), // TODO: Get from registry.
+                dimension_name: Identifier::new("minecraft", "overworld").unwrap(), // TODO: Get from player data.
+                hashed_seed: 0, // TODO: Get from world data.
+                game_mode: 0, // TODO: Get from player data.
+                previous_game_mode: -1, // TODO: Get from player data.
+                is_debug: false, // TODO: Get from world data.
+                is_flat: false, // TODO: Get from world data.
+                has_death_location: false, // TODO: Get from player data.
+                death_dimension: None, // TODO: Get from player data.
+                death_location: None, // TODO: Get from player data.
+                portal_cooldown: VarInt::new(0), // TODO: Get from player data.
+                sea_level: VarInt::new(64), // TODO: Get from world data.
+                enforces_secure_chat: config.enforces_secure_chat(),
+            }
+        });
+
+        conn.send_packet(packet)?;
 
         Ok(())
     }

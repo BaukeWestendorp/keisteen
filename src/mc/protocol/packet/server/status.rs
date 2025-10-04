@@ -46,8 +46,12 @@ impl ServerboundPacket for StatusRequest {
             (max, online, sample)
         });
 
-        let motd =
-            conn.server().read(|server| server.server_folder().config().properties().motd.clone());
+        let (motd, enforces_secure_chat) = conn.server().read(|server| {
+            let config = server.server_folder().config();
+            let motd = config.properties().motd.clone();
+            let enforces_secure_chat = config.enforces_secure_chat();
+            (motd, enforces_secure_chat)
+        });
 
         let json_response = serde_json::to_string(&StatusResponse {
             version: StatusResponseVersion {
@@ -57,7 +61,7 @@ impl ServerboundPacket for StatusRequest {
             players: Some(StatusResponsePlayers { max, online, sample }),
             description: Some(TextComponent { text: Some(motd), translate: None, color: None }),
             favicon: None,
-            enforces_secure_chat: false,
+            enforces_secure_chat,
         })
         .expect("should serialize status response");
 
