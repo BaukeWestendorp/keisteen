@@ -13,10 +13,10 @@ impl ClientboundPacket for CStatusPacket {
     fn encode(self, data: &mut PacketData) {
         match self {
             CStatusPacket::StatusResponse { json_response } => {
-                data.write_all(json_response);
+                data.write(json_response);
             }
             CStatusPacket::PongResponse { timestamp } => {
-                data.write_all(timestamp);
+                data.write(timestamp);
             }
         }
     }

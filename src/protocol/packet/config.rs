@@ -38,8 +38,8 @@ impl ClientboundPacket for CConfigPacket {
         match self {
             CConfigPacket::CookieRequest => todo!(),
             CConfigPacket::PluginMessage { channel, data: message_data } => {
-                data.write_all(channel);
-                data.write_all(message_data);
+                data.write(channel);
+                data.write(message_data);
             }
             CConfigPacket::Disconnected => todo!(),
             CConfigPacket::FinishConfig => {}
@@ -47,8 +47,8 @@ impl ClientboundPacket for CConfigPacket {
             CConfigPacket::Ping => todo!(),
             CConfigPacket::ResetChat => todo!(),
             CConfigPacket::RegistryData { registry_id, entries } => {
-                data.write_all(registry_id);
-                data.write_all_prefixed(entries);
+                data.write(registry_id);
+                data.write_prefixed(entries);
             }
             CConfigPacket::RemoveResourcePack => todo!(),
             CConfigPacket::AddResourcePack => todo!(),
@@ -57,7 +57,7 @@ impl ClientboundPacket for CConfigPacket {
             CConfigPacket::FeatureFlags => todo!(),
             CConfigPacket::UpdateTags => todo!(),
             CConfigPacket::KnownPacks { known_packs } => {
-                data.write_all_prefixed(known_packs);
+                data.write_prefixed(known_packs);
             }
             CConfigPacket::CustomReportDetails => todo!(),
             CConfigPacket::ServerLinks => todo!(),
@@ -98,9 +98,9 @@ pub struct RegistryDataEntry {
 }
 
 impl ProtocolWrite for RegistryDataEntry {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-        self.entry_id.write_all(writer)?;
-        self.data.prefixed_write_all(writer)?;
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+        self.entry_id.write(writer)?;
+        self.data.write_prefixed(writer)?;
         Ok(())
     }
 }
@@ -182,10 +182,10 @@ impl ProtocolRead for KnownPack {
 }
 
 impl ProtocolWrite for KnownPack {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-        self.namespace.write_all(writer)?;
-        self.id.write_all(writer)?;
-        self.version.write_all(writer)?;
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+        self.namespace.write(writer)?;
+        self.id.write(writer)?;
+        self.version.write(writer)?;
         Ok(())
     }
 }

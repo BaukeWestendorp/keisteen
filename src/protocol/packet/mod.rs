@@ -66,13 +66,14 @@ impl PacketData {
         &self.bytes
     }
 
-    pub fn write_all<W: ProtocolWrite>(&mut self, value: W) {
-        value.write_all(&mut self.bytes).expect("writing into Vec<u8> should not error")
+    pub fn write<W: ProtocolWrite>(&mut self, value: W) {
+        value.write(&mut self.bytes).expect("writing into Vec<u8> should not error")
     }
 
-    pub fn write_all_prefixed<W: PrefixedProtocolWrite>(&mut self, value: W) {
-        value.prefixed_write_all(&mut self.bytes).expect("writing into Vec<u8> should not error")
+    pub fn write_prefixed<W: PrefixedProtocolWrite>(&mut self, value: W) {
+        value.write_prefixed(&mut self.bytes).expect("writing into Vec<u8> should not error")
     }
+
     pub fn read<R: ProtocolRead>(&mut self) -> KeisteenResult<R> {
         let mut cursor = io::Cursor::new(&self.bytes);
         let result = R::read_from(&mut cursor)?;
@@ -98,7 +99,8 @@ impl PacketData {
     }
 
     pub fn to_writer<W: io::Write>(&self, writer: &mut W) -> io::Result<()> {
-        writer.write_all(&self.bytes)
+        writer.write(&self.bytes)?;
+        Ok(())
     }
 }
 
@@ -109,27 +111,27 @@ impl<T: Into<Vec<u8>>> From<T> for PacketData {
 }
 
 pub trait ProtocolWrite {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()>;
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()>;
 }
 
 pub trait PrefixedProtocolWrite {
-    fn prefixed_write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()>;
+    fn write_prefixed<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()>;
 }
 
 impl ProtocolWrite for () {
-    fn write_all<W: io::Write>(&self, _writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, _writer: &mut W) -> KeisteenResult<()> {
         Ok(())
     }
 }
 
 impl PrefixedProtocolWrite for () {
-    fn prefixed_write_all<W: io::Write>(&self, _writer: &mut W) -> KeisteenResult<()> {
+    fn write_prefixed<W: io::Write>(&self, _writer: &mut W) -> KeisteenResult<()> {
         Ok(())
     }
 }
 
 impl ProtocolWrite for bool {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         match self {
             false => writer.write(&[0x00]).wrap_err("failed to write `false`")?,
             true => writer.write(&[0x01]).wrap_err("failed to write `true`")?,
@@ -141,8 +143,9 @@ impl ProtocolWrite for bool {
 macro_rules! impl_protocol_write {
     ($type:ty, $write_err:literal) => {
         impl ProtocolWrite for $type {
-            fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-                writer.write_all(&self.to_be_bytes()).wrap_err($write_err)
+            fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+                writer.write(&self.to_be_bytes()).wrap_err($write_err)?;
+                Ok(())
             }
         }
     };
@@ -158,77 +161,78 @@ impl_protocol_write!(u64, "failed to write u64");
 impl_protocol_write!(i64, "failed to write i64");
 
 impl ProtocolWrite for String {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         VarInt::new(self.len() as i32).to_writer(writer)?;
-        writer.write_all(self.as_bytes()).wrap_err("failed to write string")?;
+        writer.write(self.as_bytes()).wrap_err("failed to write string")?;
         Ok(())
     }
 }
 
 impl ProtocolWrite for &str {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         VarInt::new(self.len() as i32).to_writer(writer)?;
-        writer.write_all(self.as_bytes()).wrap_err("failed to write string")?;
+        writer.write(self.as_bytes()).wrap_err("failed to write string")?;
         Ok(())
     }
 }
 
 impl ProtocolWrite for str {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         VarInt::new(self.len() as i32).to_writer(writer)?;
-        writer.write_all(self.as_bytes()).wrap_err("failed to write string")?;
+        writer.write(self.as_bytes()).wrap_err("failed to write string")?;
         Ok(())
     }
 }
 
 impl ProtocolWrite for Identifier {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-        self.to_string().write_all(writer).wrap_err("failed to write identifier")
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+        self.to_string().write(writer).wrap_err("failed to write identifier")
     }
 }
 
 impl ProtocolWrite for VarInt {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         self.to_writer(writer).wrap_err("failed to write varint")
     }
 }
 
 impl ProtocolWrite for nbt::NbtTag {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         self.to_writer(writer, nbt::WriteMode::Network).wrap_err("failed to write nbt value")
     }
 }
 
 impl ProtocolWrite for Position {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-        i64::from(*self).write_all(writer).wrap_err("failed to write position")
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+        i64::from(*self).write(writer).wrap_err("failed to write position")
     }
 }
 
 impl ProtocolWrite for Uuid {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
-        writer.write_all(&self.to_bytes_le()).wrap_err("failed to write uuid")
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+        writer.write(&self.to_bytes_le()).wrap_err("failed to write uuid")?;
+        Ok(())
     }
 }
 
 impl<T: ProtocolWrite> ProtocolWrite for Option<T> {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         match self {
-            Some(t) => t.write_all(writer),
+            Some(t) => t.write(writer),
             None => Ok(()),
         }
     }
 }
 
 impl<T: ProtocolWrite> PrefixedProtocolWrite for Option<T> {
-    fn prefixed_write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write_prefixed<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         match self {
             Some(t) => {
-                true.write_all(writer)?;
-                t.write_all(writer)?;
+                true.write(writer)?;
+                t.write(writer)?;
             }
             None => {
-                false.write_all(writer)?;
+                false.write(writer)?;
             }
         }
         Ok(())
@@ -236,19 +240,19 @@ impl<T: ProtocolWrite> PrefixedProtocolWrite for Option<T> {
 }
 
 impl<T: ProtocolWrite> ProtocolWrite for Vec<T> {
-    fn write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         for item in self {
-            item.write_all(writer)?;
+            item.write(writer)?;
         }
         Ok(())
     }
 }
 
 impl<T: ProtocolWrite> PrefixedProtocolWrite for Vec<T> {
-    fn prefixed_write_all<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
+    fn write_prefixed<W: io::Write>(&self, writer: &mut W) -> KeisteenResult<()> {
         let len = VarInt::new(self.len() as i32);
-        len.write_all(writer)?;
-        self.write_all(writer)?;
+        len.write(writer)?;
+        self.write(writer)?;
         Ok(())
     }
 }

@@ -57,7 +57,7 @@ impl Connection {
 
     fn send_brand_plugin_message_packet(&mut self, brand: &str) -> KeisteenResult<()> {
         let mut data = Vec::new();
-        ProtocolWrite::write_all(brand, &mut data)?;
+        ProtocolWrite::write(brand, &mut data)?;
 
         self.send_packet(CConfigPacket::PluginMessage {
             channel: Identifier::new("minecraft", "brand")?,

@@ -59,32 +59,32 @@ impl ClientboundPacket for CPlayPacket {
                 sea_level,
                 enforces_secure_chat,
             } => {
-                data.write_all(entity_id);
-                data.write_all(is_hardcore);
-                data.write_all_prefixed(dimension_names);
-                data.write_all(max_players);
-                data.write_all(view_distance);
-                data.write_all(simulation_distance);
-                data.write_all(reduced_debug_info);
-                data.write_all(enable_respawn_screen);
-                data.write_all(do_limited_crafting);
-                data.write_all(dimension_type);
-                data.write_all(dimension_name);
-                data.write_all(hashed_seed);
-                data.write_all(game_mode);
-                data.write_all(previous_game_mode);
-                data.write_all(is_debug);
-                data.write_all(is_flat);
-                data.write_all(has_death_location);
+                data.write(entity_id);
+                data.write(is_hardcore);
+                data.write_prefixed(dimension_names);
+                data.write(max_players);
+                data.write(view_distance);
+                data.write(simulation_distance);
+                data.write(reduced_debug_info);
+                data.write(enable_respawn_screen);
+                data.write(do_limited_crafting);
+                data.write(dimension_type);
+                data.write(dimension_name);
+                data.write(hashed_seed);
+                data.write(game_mode);
+                data.write(previous_game_mode);
+                data.write(is_debug);
+                data.write(is_flat);
+                data.write(has_death_location);
                 if has_death_location {
-                    data.write_all(death_dimension);
+                    data.write(death_dimension);
                 }
                 if has_death_location {
-                    data.write_all(death_location);
+                    data.write(death_location);
                 }
-                data.write_all(portal_cooldown);
-                data.write_all(sea_level);
-                data.write_all(enforces_secure_chat);
+                data.write(portal_cooldown);
+                data.write(sea_level);
+                data.write(enforces_secure_chat);
             }
         }
     }

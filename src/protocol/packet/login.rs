@@ -44,18 +44,18 @@ impl ClientboundPacket for CLoginPacket {
                 verify_token,
                 should_authenticate,
             } => {
-                data.write_all(server_id);
-                data.write_all_prefixed(public_key);
-                data.write_all_prefixed(verify_token);
-                data.write_all(should_authenticate);
+                data.write(server_id);
+                data.write_prefixed(public_key);
+                data.write_prefixed(verify_token);
+                data.write(should_authenticate);
             }
             CLoginPacket::LoginSuccess { uuid, username, .. } => {
-                data.write_all(uuid);
-                data.write_all(username);
-                data.write_all_prefixed(Vec::<()>::new()); // TODO: Write properties.
+                data.write(uuid);
+                data.write(username);
+                data.write_prefixed(Vec::<()>::new()); // TODO: Write properties.
             }
             CLoginPacket::SetCompression { threshold } => {
-                data.write_all(threshold);
+                data.write(threshold);
             }
             CLoginPacket::LoginPluginRequest { .. } => todo!(),
             CLoginPacket::CookieRequest { .. } => todo!(),

@@ -136,7 +136,7 @@ impl NbtTag {
         W: io::Write,
     {
         if should_write_tag_type_id {
-            writer.write_all(&[self.tag_type_id()])?;
+            writer.write(&[self.tag_type_id()])?;
         }
 
         let mut write_name = |name: Option<&String>| -> io::Result<()> {
@@ -150,8 +150,8 @@ impl NbtTag {
 
             let name_len = name.map(|name| name.len()).unwrap_or_default() as u16;
 
-            writer.write_all(&name_len.to_be_bytes())?;
-            writer.write_all(name.map(|name| name.as_bytes()).unwrap_or_default())?;
+            writer.write(&name_len.to_be_bytes())?;
+            writer.write(name.map(|name| name.as_bytes()).unwrap_or_default())?;
 
             Ok(())
         };
@@ -160,38 +160,38 @@ impl NbtTag {
             NbtTag::End => {}
             NbtTag::Byte { name, payload } => {
                 write_name(name.as_ref())?;
-                writer.write_all(&payload.to_be_bytes())?;
+                writer.write(&payload.to_be_bytes())?;
             }
             NbtTag::Short { name, payload } => {
                 write_name(name.as_ref())?;
-                writer.write_all(&payload.to_be_bytes())?;
+                writer.write(&payload.to_be_bytes())?;
             }
             NbtTag::Int { name, payload } => {
                 write_name(name.as_ref())?;
-                writer.write_all(&payload.to_be_bytes())?;
+                writer.write(&payload.to_be_bytes())?;
             }
             NbtTag::Long { name, payload } => {
                 write_name(name.as_ref())?;
-                writer.write_all(&payload.to_be_bytes())?;
+                writer.write(&payload.to_be_bytes())?;
             }
             NbtTag::Float { name, payload } => {
                 write_name(name.as_ref())?;
-                writer.write_all(&payload.to_be_bytes())?;
+                writer.write(&payload.to_be_bytes())?;
             }
             NbtTag::Double { name, payload } => {
                 write_name(name.as_ref())?;
-                writer.write_all(&payload.to_be_bytes())?;
+                writer.write(&payload.to_be_bytes())?;
             }
             NbtTag::ByteArray { name, payload } => {
                 write_name(name.into())?;
-                writer.write_all(&payload)?;
+                writer.write(&payload)?;
             }
             NbtTag::String { name, payload } => {
                 let string_length = payload.len() as u16;
 
                 write_name(name.as_ref())?;
-                writer.write_all(&string_length.to_be_bytes())?;
-                writer.write_all(&payload.as_bytes())?;
+                writer.write(&string_length.to_be_bytes())?;
+                writer.write(&payload.as_bytes())?;
             }
             NbtTag::List { name, type_id, payload } => {
                 let list_length = payload.len() as i32;
@@ -201,8 +201,8 @@ impl NbtTag {
                 };
 
                 write_name(name.as_ref())?;
-                writer.write_all(&[type_id])?;
-                writer.write_all(&list_length.to_be_bytes())?;
+                writer.write(&[type_id])?;
+                writer.write(&list_length.to_be_bytes())?;
 
                 for item in payload {
                     item.internal_to_writer(writer, WriteMode::Standard, false, false)?;
@@ -223,20 +223,20 @@ impl NbtTag {
                 let list_length = payload.len() as i32;
 
                 write_name(name.as_ref())?;
-                writer.write_all(&list_length.to_be_bytes())?;
+                writer.write(&list_length.to_be_bytes())?;
 
                 for item in payload {
-                    writer.write_all(&item.to_be_bytes())?;
+                    writer.write(&item.to_be_bytes())?;
                 }
             }
             NbtTag::LongArray { name, payload } => {
                 let list_length = payload.len() as i32;
 
                 write_name(name.as_ref())?;
-                writer.write_all(&list_length.to_be_bytes())?;
+                writer.write(&list_length.to_be_bytes())?;
 
                 for item in payload {
-                    writer.write_all(&item.to_be_bytes())?;
+                    writer.write(&item.to_be_bytes())?;
                 }
             }
         }
