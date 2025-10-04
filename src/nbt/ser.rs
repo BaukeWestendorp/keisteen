@@ -33,7 +33,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     type SerializeTuple = Impossible<(), Error>;
     type SerializeTupleStruct = Impossible<(), Error>;
     type SerializeTupleVariant = Impossible<(), Error>;
-    type SerializeMap = Impossible<(), Error>;
+    type SerializeMap = Self;
     type SerializeStruct = Self;
     type SerializeStructVariant = Impossible<(), Error>;
 
@@ -179,7 +179,8 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
-        todo!()
+        self.output = NbtTag::Compound { name: Some("".to_string()), payload: Vec::new() };
+        Ok(self)
     }
 
     fn serialize_struct(self, name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
@@ -222,6 +223,36 @@ impl<'a> ser::SerializeSeq for &'a mut Serializer {
     }
 
     fn end(self) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl<'a> ser::SerializeMap for &'a mut Serializer {
+    type Ok = ();
+    type Error = Error;
+
+    fn serialize_key<T>(&mut self, _key: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        todo!("serializing key")
+    }
+
+    fn serialize_value<T>(&mut self, _value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        todo!("serializing value")
+    }
+
+    fn end(self) -> Result<()> {
+        match &mut self.output {
+            NbtTag::Compound { payload, .. } => {
+                payload.push(NbtTag::End);
+            }
+            _ => unreachable!("maps are always serialized as compound tags"),
+        }
+
         Ok(())
     }
 }

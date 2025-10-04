@@ -266,7 +266,7 @@ impl KnownPacks {
                 // TODO: create_packet(registries.trim_pattern())?,
                 create_packet(registries.wolf_sound_variant())?,
                 create_packet(registries.wolf_variant())?,
-                // TODO: create_packet(registries.worldgen_biome())?,
+                create_packet(registries.worldgen_biome())?,
             ])
         })?;
 
