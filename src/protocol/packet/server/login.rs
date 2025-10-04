@@ -12,7 +12,7 @@ pub fn handle_raw_packet(raw: RawPacket, conn: &mut Connection) -> KeisteenResul
     match raw.packet_id.raw() {
         CookieResponse::PACKET_ID => CookieResponse::decode(raw)?.handle(conn),
         EncryptionResponse::PACKET_ID => EncryptionResponse::decode(raw)?.handle(conn),
-        Acknowledged::PACKET_ID => Acknowledged::decode(raw)?.handle(conn),
+        LoginAcknowledged::PACKET_ID => LoginAcknowledged::decode(raw)?.handle(conn),
         PluginResponse::PACKET_ID => PluginResponse::decode(raw)?.handle(conn),
         Start::PACKET_ID => Start::decode(raw)?.handle(conn),
         _ => bail!("unknown login packet id: {}", raw.packet_id.raw()),
@@ -107,9 +107,9 @@ impl ServerboundPacket for PluginResponse {
 }
 
 #[derive(Debug)]
-pub struct Acknowledged;
+pub struct LoginAcknowledged;
 
-impl ServerboundPacket for Acknowledged {
+impl ServerboundPacket for LoginAcknowledged {
     const PACKET_ID: i32 = 0x03;
 
     fn decode(_raw: RawPacket) -> KeisteenResult<Self> {
@@ -131,7 +131,7 @@ impl ServerboundPacket for Acknowledged {
     }
 }
 
-impl Acknowledged {
+impl LoginAcknowledged {
     fn send_brand_plugin_message_packet(
         &self,
         brand: &str,
