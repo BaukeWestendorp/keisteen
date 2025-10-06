@@ -4,17 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-aes = "0.8.4"
-cfb8 = "0.8.1"
+bytes = "1.10.1"
 clap = { version = "4.5.48", features = ["derive"] }
 env_logger = "0.11.8"
 eyre = "0.6.12"
-flate2 = { version = "1.1.2", features = ["zlib-rs"], default-features = false }
+futures = "0.3.31"
 log = "0.4.28"
-rand = "0.8"
-rsa = "0.9.8"
-rsa-der = "0.3.0"
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.145"
-toml = "0.9.7"
+tokio = { version = "1.47.1", features = ["full"] }
+tokio-util = { version = "0.7.16", features = ["codec"] }
 uuid = { version = "1.18.1", features = ["serde", "v4"] }

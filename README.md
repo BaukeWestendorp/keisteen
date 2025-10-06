@@ -11,25 +11,25 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 
 ## Checklist
 - [ ] Handshaking
-	- [x] Handle intended connection state
+	- [ ] Handle intended connection state
 	- [ ] Kick player if protocol versions do not match
 	- [ ] Handle legacy server list ping packet
 - [ ] Status
 	- [ ] Status response
-		- [x] Version
-		- [x] Players
-		- [x] Description
-			- [x] Send hardcoded description
-			- [x] Send customizable description
+		- [ ] Version
+		- [ ] Players
+		- [ ] Description
+			- [ ] Send hardcoded description
+			- [ ] Send customizable description
 		- [ ] Favicon
 		- [ ] Enforce secure chat
-		  - [x] Send in packets
+		  - [ ] Send in packets
 			- [ ] Actually enforce
-	- [x] Pong response
+	- [ ] Pong response
 - [ ] Login
 	- [ ] Handle disconnected packet
 	- [ ] Encryption
-		- [x] Encrypt packets
+		- [ ] Encrypt packets
 		- [ ] Authenticate
 	- [ ] Compression
 	- [ ] Login plugin request packet
@@ -41,7 +41,7 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 	- [ ] Cookie packets
 	- [ ] Plugin messages
 		- [ ] Store client brand
-		- [x] Send server brand
+		- [ ] Send server brand
 		- [ ] Expose received plugin messages to API
 	- [ ] Keep-alive packets
 	- [ ] Ping-pong packets
@@ -50,7 +50,7 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 	- [ ] Handle custom click action
 	- [ ] Reset chat packet
 	- [ ] Registry packets
-		- [x] Basic registry support
+		- [ ] Basic registry support
 		- [ ] Send all registries to client
 	- [ ] Send feature flags
 	- [ ] Update tags
@@ -79,7 +79,7 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] gamemode
       - [ ] generate-structures
       - [ ] generator-settings
-      - [x] hardcore
+      - [ ] hardcore
       - [ ] hide-online-players
       - [ ] initial-disabled-packs
       - [ ] initial-enabled-packs
@@ -95,10 +95,10 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] management-server-tls-keystore
       - [ ] management-server-tls-keystore-password
       - [ ] max-chained-neighbor-updates
-      - [x] max-players
+      - [ ] max-players
       - [ ] max-tick-time
       - [ ] max-world-size
-      - [x] motd
+      - [ ] motd
       - [ ] network-compression-threshold
       - [ ] online-mode
       - [ ] op-permission-level
@@ -115,8 +115,8 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] resource-pack-id
       - [ ] resource-pack-prompt
       - [ ] resource-pack-sha1
-      - [x] server-ip
-      - [x] server-port
+      - [ ] server-ip
+      - [ ] server-port
       - [ ] simulation-distance
       - [ ] spawn-protection
       - [ ] status-heartbeat-interval

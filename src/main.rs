@@ -1,9 +1,17 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use keisteen::server::conn::ConnectionManager;
-use keisteen::server::folder::ServerFolder;
-use keisteen::server::{Server, ServerHandle};
+
+use crate::mc::types::VarInt;
+use crate::server::Server;
+
+pub(crate) mod error;
+pub(crate) mod mc;
+pub(crate) mod server;
+
+pub const BRAND: &str = "Keisteen";
+pub const MC_VERSION: &str = "1.21.8";
+pub const MC_PROTOCOL: VarInt = VarInt::new(772);
 
 #[derive(Parser)]
 #[command(name = "Keisteen Server")]
@@ -14,17 +22,13 @@ struct Args {
     path: PathBuf,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::builder().format_timestamp(None).init();
 
     let Args { path } = Args::parse();
 
-    let server_folder = ServerFolder::new(path).expect("should create server");
-    let properties = &server_folder.config().properties();
-    let address = format!("{}:{}", properties.server_ip, properties.server_port);
-
-    let server = Server::new(server_folder);
-    let handle = ServerHandle::new(server);
-
-    ConnectionManager::new(handle).bind(address).expect("should start server");
+    if let Err(err) = Server::new(path).start().await {
+        log::error!("{err}");
+    }
 }
