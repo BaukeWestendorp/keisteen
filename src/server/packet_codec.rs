@@ -68,6 +68,9 @@ impl Decoder for PacketCodec {
         src.advance(id.len() as usize);
 
         let data = src.clone().freeze();
+
+        src.advance(data.len());
+
         Ok(Some(ServerboundRawPacket { id, data }))
     }
 }

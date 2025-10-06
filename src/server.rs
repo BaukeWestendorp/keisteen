@@ -5,16 +5,16 @@ use tokio::net::TcpListener;
 
 use crate::server::connection::Connection;
 
-pub mod packet_codec;
 pub mod connection;
+pub mod packet_codec;
 
 pub struct Server {
-    server_folder_path: PathBuf,
+    _server_folder_path: PathBuf,
 }
 
 impl Server {
-    pub fn new(server_folder_path: PathBuf) -> Self {
-        Self { server_folder_path }
+    pub fn new(_server_folder_path: PathBuf) -> Self {
+        Self { _server_folder_path }
     }
 
     pub async fn start(self) -> io::Result<()> {

@@ -27,11 +27,11 @@ pub trait ProtocolPrefixedWrite {
 }
 
 macro_rules! impl_proto_rw_primitive {
-    [$(($type:ty, $get:ident, $put:ident)),*] => {
+    [$(($type:ty, $try_get:ident, $put:ident)),*] => {
         $(
             impl ProtocolRead for $type {
                 fn read(bytes: &mut Bytes) -> io::Result<Self> {
-                    Ok(bytes.$get())
+                    bytes.$try_get().map_err(|err| io::Error::other(err))
                 }
             }
 
@@ -45,16 +45,16 @@ macro_rules! impl_proto_rw_primitive {
 }
 
 impl_proto_rw_primitive![
-    (u8, get_u8, put_u8),
-    (i8, get_i8, put_i8),
-    (u16, get_u16, put_u16),
-    (i16, get_i16, put_i16),
-    (u32, get_u32, put_u32),
-    (i32, get_i32, put_i32),
-    (u64, get_u64, put_u64),
-    (i64, get_i64, put_i64),
-    (f32, get_f32, put_f32),
-    (f64, get_f64, put_f64)
+    (u8, try_get_u8, put_u8),
+    (i8, try_get_i8, put_i8),
+    (u16, try_get_u16, put_u16),
+    (i16, try_get_i16, put_i16),
+    (u32, try_get_u32, put_u32),
+    (i32, try_get_i32, put_i32),
+    (u64, try_get_u64, put_u64),
+    (i64, try_get_i64, put_i64),
+    (f32, try_get_f32, put_f32),
+    (f64, try_get_f64, put_f64)
 ];
 
 impl ProtocolRead for bool {

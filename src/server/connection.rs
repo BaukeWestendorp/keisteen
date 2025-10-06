@@ -22,7 +22,7 @@ impl Connection {
         let (reader, writer) = socket.into_split();
         let framed_reader = FramedRead::new(reader, PacketCodec);
         let framed_writer = FramedWrite::new(writer, PacketCodec);
-        Self { state: ConnectionState::Handshake, framed_reader, framed_writer }
+        Self { state: ConnectionState::default(), framed_reader, framed_writer }
     }
 
     pub async fn start(mut self) -> KeisteenResult<()> {
@@ -45,12 +45,17 @@ impl Connection {
         Ok(())
     }
 
+    pub fn set_state(&mut self, state: ConnectionState) {
+        log::trace!("changing state from {:?} to {:?}", self.state, state);
+        self.state = state;
+    }
+
     async fn handle_raw_packet(&mut self, packet: ServerboundRawPacket) -> KeisteenResult<()> {
-        log::info!("received packet: {:?}", packet);
+        log::trace!("received packet: {:?}", packet);
 
         match self.state {
             ConnectionState::Handshake => {
-                packet::server::handshake::handle_raw_packet(packet).await?;
+                packet::server::handshake::handle_raw_packet(packet, self).await?;
             }
             ConnectionState::Status => {
                 // packet::server::status::handle_raw_packet(packet).await?;
@@ -70,7 +75,9 @@ impl Connection {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum ConnectionState {
+    #[default]
     Handshake,
     Status,
     Login,

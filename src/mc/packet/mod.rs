@@ -22,9 +22,3 @@ pub struct ServerboundRawPacket {
     pub id: VarInt,
     pub data: Bytes,
 }
-
-impl ServerboundRawPacket {
-    pub fn length(&self) -> i32 {
-        self.id.len() as i32 + self.data.len() as i32
-    }
-}

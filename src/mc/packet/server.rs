@@ -1,8 +1,7 @@
 use crate::error::KeisteenResult;
+use crate::server::connection::Connection;
 
 use bytes::Bytes;
-
-pub use handshake::Handshake;
 
 pub mod handshake;
 
@@ -13,7 +12,7 @@ pub trait ServerboundPacket {
     where
         Self: Sized;
 
-    async fn handle(self) -> KeisteenResult<()>
+    async fn handle(self, connection: &mut Connection) -> KeisteenResult<()>
     where
         Self: Sized;
 }
