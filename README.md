@@ -5,27 +5,27 @@
 
 **Why?**
 a) Why not?
+
 b) For fun!
 
 There are lots of Minecraft Server implementations written in Rust to be found, and I do not intend to challenge them. This project is mostly a side-project that started out of curiosity, so do not expect it to work, be fast or, God forbid, be stable.
 
 ## Checklist
 - [ ] Handshaking
-	- [ ] Handle intended connection state
-	- [ ] Kick player if protocol versions do not match
+	- [x] Handle intended connection state
 	- [ ] Handle legacy server list ping packet
 - [ ] Status
 	- [ ] Status response
-		- [ ] Version
+		- [x] Version
 		- [ ] Players
 		- [ ] Description
-			- [ ] Send hardcoded description
+			- [x] Send hardcoded description
 			- [ ] Send customizable description
 		- [ ] Favicon
 		- [ ] Enforce secure chat
 		  - [ ] Send in packets
 			- [ ] Actually enforce
-	- [ ] Pong response
+	- [x] Pong response
 - [ ] Login
 	- [ ] Handle disconnected packet
 	- [ ] Encryption

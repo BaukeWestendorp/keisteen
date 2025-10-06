@@ -1,11 +1,14 @@
+use std::fmt::Debug;
+
 use crate::error::KeisteenResult;
 use crate::server::connection::Connection;
 
 use bytes::Bytes;
 
 pub mod handshake;
+pub mod status;
 
-pub trait ServerboundPacket {
+pub trait ServerboundPacket: Debug {
     const PACKET_ID: i32;
 
     fn decode_data(bytes: Bytes) -> KeisteenResult<Self>

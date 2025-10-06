@@ -7,6 +7,7 @@ use crate::mc::protocol::ProtocolRead;
 use crate::mc::types::VarInt;
 use crate::server::connection::{Connection, ConnectionState};
 
+#[derive(Debug)]
 pub struct Handshake {
     pub protocol_version: VarInt,
     pub server_address: String,
@@ -27,13 +28,7 @@ impl ServerboundPacket for Handshake {
     }
 
     async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {
-        log::trace!(
-            "handshake: protocol_version={}, server_address={}, server_port={}, intent={}",
-            self.protocol_version.raw(),
-            self.server_address,
-            self.server_port,
-            self.intent.raw()
-        );
+        log::trace!("<<< {self:?}");
 
         connection.set_state(match self.intent.raw() {
             1 => ConnectionState::Status,
@@ -41,7 +36,8 @@ impl ServerboundPacket for Handshake {
             3 => ConnectionState::Transfer,
             _ => {
                 log::warn!("unknown next state: {}", self.intent.raw());
-                ConnectionState::default()
+                connection.stop().await;
+                return Ok(());
             }
         });
 
@@ -54,10 +50,13 @@ pub async fn handle_raw_packet(
     connection: &mut Connection,
 ) -> KeisteenResult<()> {
     match packet.id.raw() {
-        Handshake::PACKET_ID => Handshake::decode_data(packet.data)?.handle(connection).await,
+        Handshake::PACKET_ID => {
+            Handshake::decode_data(packet.data)?.handle(connection).await?;
+        }
         _ => {
             log::warn!("unknown packet id: {}", packet.id.raw());
-            Ok(())
         }
     }
+
+    Ok(())
 }
