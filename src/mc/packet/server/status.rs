@@ -19,29 +19,35 @@ impl ServerboundPacket for StatusRequest {
     async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {
         log::trace!("<<< {self:?}");
 
-        let json_response = r#"{
-            "version": {
-                "name": "1.21.8",
-                "protocol": 772
-            },
-            "players": {
-                "max": 20,
-                "online": 1,
-                "sample": [
-                    {
-                        "name": "cakeless",
-                        "id": "0541ed27-7595-4e6a-9101-6c07f879b7b5"
-                    }
-                ]
-            },
-            "description": {
-                "text": "Hello, world!"
-            },
-            "favicon": "data:image/png;base64,<data>",
-            "enforcesSecureChat": false
-        }"#;
+        let json_response = format!(
+            r#"{{
+                "version": {{
+                    "name": "{version}",
+                    "protocol": {protocol}
+                }},
+                "players": {{
+                    "max": 20,
+                    "online": 1,
+                    "sample": [
+                        {{
+                            "name": "cakeless",
+                            "id": "0541ed27-7595-4e6a-9101-6c07f879b7b5"
+                        }}
+                    ]
+                }},
+                "description": {{
+                    "text": "Hello, world!"
+                }},
+                "favicon": "data:image/png;base64,<data>",
+                "enforcesSecureChat": false
+            }}"#,
+            version = crate::MC_VERSION,
+            protocol = crate::MC_PROTOCOL
+        );
 
-        connection.send_packet(packet::client::status::StatusResponse { json_response }).await?;
+        connection
+            .send_packet(packet::client::status::StatusResponse { json_response: &json_response })
+            .await?;
 
         Ok(())
     }
