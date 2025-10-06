@@ -10,8 +10,8 @@ pub(crate) mod mc;
 pub(crate) mod server;
 
 pub const BRAND: &str = "Keisteen";
-pub const MC_VERSION: &str = "1.21.8";
-pub const MC_PROTOCOL: VarInt = VarInt::new(772);
+pub const MC_VERSION: &str = "1.21.9";
+pub const MC_PROTOCOL: VarInt = VarInt::new(773);
 
 #[derive(Parser)]
 #[command(name = "Keisteen Server")]
