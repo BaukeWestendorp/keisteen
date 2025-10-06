@@ -27,18 +27,12 @@ impl ServerboundPacket for StatusRequest {
                 }},
                 "players": {{
                     "max": 20,
-                    "online": 1,
-                    "sample": [
-                        {{
-                            "name": "cakeless",
-                            "id": "0541ed27-7595-4e6a-9101-6c07f879b7b5"
-                        }}
-                    ]
+                    "online": 0,
+                    "sample": []
                 }},
                 "description": {{
-                    "text": "Hello, world!"
+                    "text": "A Keisteen Minecraft Server"
                 }},
-                "favicon": "data:image/png;base64,<data>",
                 "enforcesSecureChat": false
             }}"#,
             version = crate::MC_VERSION,
