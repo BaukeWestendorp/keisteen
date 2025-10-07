@@ -1,15 +1,19 @@
+use std::collections::HashMap;
 use std::io;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use tokio::net::TcpListener;
+use uuid::Uuid;
 
 use crate::server::connection::Connection;
 use crate::server::folder::ServerFolder;
+use crate::server::game_profile::GameProfile;
 use crate::server::player_list::PlayerList;
 
 pub mod connection;
 pub mod folder;
+pub mod game_profile;
 pub mod player;
 pub mod player_list;
 
@@ -18,6 +22,7 @@ pub struct Server {
     server_folder: Arc<ServerFolder>,
 
     player_list: Arc<PlayerList>,
+    game_profiles: Arc<Mutex<HashMap<Uuid, GameProfile>>>,
 }
 
 impl Server {
@@ -27,7 +32,7 @@ impl Server {
         let max_players = server_folder.properties().max_players();
         let player_list = Arc::new(PlayerList::new(max_players));
 
-        Ok(Self { server_folder, player_list })
+        Ok(Self { server_folder, player_list, game_profiles: Arc::new(Mutex::new(HashMap::new())) })
     }
 
     pub fn server_folder(&self) -> &ServerFolder {
@@ -36,6 +41,14 @@ impl Server {
 
     pub fn player_list(&self) -> &PlayerList {
         &self.player_list
+    }
+
+    pub fn game_profile(&self, uuid: &Uuid) -> Option<GameProfile> {
+        self.game_profiles.lock().unwrap().get(uuid).cloned()
+    }
+
+    pub fn add_game_profile(&self, profile: GameProfile) {
+        self.game_profiles.lock().unwrap().insert(profile.uuid, profile);
     }
 }
 

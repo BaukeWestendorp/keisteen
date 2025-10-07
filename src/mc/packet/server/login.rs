@@ -6,6 +6,7 @@ use crate::mc::packet::ServerboundRawPacket;
 use crate::mc::packet::server::ServerboundPacket;
 use crate::mc::protocol::BytesExt;
 use crate::server::connection::Connection;
+use crate::server::game_profile::GameProfile;
 
 #[derive(Debug)]
 pub struct LoginStart {
@@ -20,8 +21,18 @@ impl ServerboundPacket for LoginStart {
         Ok(Self { name: bytes.try_get_prefixed_string()?, player_uuid: bytes.try_get_uuid()? })
     }
 
-    async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
+    async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {
         log::trace!("<<< {self:?}");
+
+        let profile = GameProfile {
+            uuid: self.player_uuid,
+            username: self.name,
+            // TODO: load actual properties.
+            properties: vec![],
+        };
+
+        connection.server().add_game_profile(profile);
+
         Ok(())
     }
 }

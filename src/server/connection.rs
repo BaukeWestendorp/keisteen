@@ -35,8 +35,10 @@ impl Connection {
 
         Self {
             server,
+
             running: false,
             state: ConnectionState::default(),
+
             framed_reader,
             framed_writer,
         }
