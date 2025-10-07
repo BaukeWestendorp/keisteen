@@ -159,8 +159,10 @@ impl ServerboundPacket for KnownPacks {
         })
     }
 
-    async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
+    async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {
         log::trace!("<<< {self:?}");
+
+        connection.send_registry_data().await?;
 
         Ok(())
     }

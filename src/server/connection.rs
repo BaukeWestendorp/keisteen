@@ -133,6 +133,12 @@ impl Connection {
 
         Ok(())
     }
+
+    pub async fn send_registry_data(&mut self) -> KeisteenResult<()> {
+        log::trace!("sending registry data");
+
+        todo!("send registry data");
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]

@@ -6,6 +6,7 @@ use std::sync::{Arc, Mutex};
 use tokio::net::TcpListener;
 use uuid::Uuid;
 
+use crate::mc::registry::Registries;
 use crate::server::connection::Connection;
 
 pub mod connection;
@@ -25,6 +26,7 @@ pub struct Server {
 
     player_list: Arc<PlayerList>,
     game_profiles: Arc<Mutex<HashMap<Uuid, GameProfile>>>,
+    registries: Arc<Registries>,
 }
 
 impl Server {
@@ -34,7 +36,12 @@ impl Server {
         let max_players = server_folder.properties().max_players();
         let player_list = Arc::new(PlayerList::new(max_players));
 
-        Ok(Self { server_folder, player_list, game_profiles: Arc::new(Mutex::new(HashMap::new())) })
+        Ok(Self {
+            server_folder,
+            player_list,
+            game_profiles: Arc::new(Mutex::new(HashMap::new())),
+            registries: Arc::new(Registries::load_from_assets()),
+        })
     }
 
     pub fn server_folder(&self) -> &ServerFolder {
@@ -43,6 +50,10 @@ impl Server {
 
     pub fn player_list(&self) -> &PlayerList {
         &self.player_list
+    }
+
+    pub fn registries(&self) -> &Registries {
+        &self.registries
     }
 
     pub fn game_profile(&self, uuid: &Uuid) -> Option<GameProfile> {
