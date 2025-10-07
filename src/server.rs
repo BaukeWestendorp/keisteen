@@ -6,6 +6,8 @@ use tokio::net::TcpListener;
 use crate::server::connection::Connection;
 
 pub mod connection;
+pub mod player;
+pub mod player_list;
 
 pub struct Server {
     _server_folder_path: PathBuf,
