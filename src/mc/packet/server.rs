@@ -5,6 +5,7 @@ use crate::server::connection::Connection;
 
 use bytes::Bytes;
 
+pub mod config;
 pub mod handshake;
 pub mod login;
 pub mod status;
