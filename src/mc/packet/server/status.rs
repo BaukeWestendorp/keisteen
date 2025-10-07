@@ -1,8 +1,10 @@
 use bytes::{Buf, Bytes};
+use uuid::Uuid;
 
 use crate::error::KeisteenResult;
 use crate::mc::packet::server::ServerboundPacket;
 use crate::mc::packet::{self, ServerboundRawPacket};
+use crate::mc::text::TextComponent;
 use crate::server::connection::Connection;
 
 #[derive(Debug)]
@@ -18,25 +20,22 @@ impl ServerboundPacket for StatusRequest {
     async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {
         log::trace!("<<< {self:?}");
 
-        let json_response = format!(
-            r#"{{
-                "version": {{
-                    "name": "{version}",
-                    "protocol": {protocol}
-                }},
-                "players": {{
-                    "max": 20,
-                    "online": 0,
-                    "sample": []
-                }},
-                "description": {{
-                    "text": "A Keisteen Minecraft Server"
-                }},
-                "enforcesSecureChat": false
-            }}"#,
-            version = crate::MC_VERSION,
-            protocol = crate::MC_PROTOCOL
-        );
+        let response = StatusResponse {
+            version: StatusResponseVersion { name: crate::MC_VERSION, protocol: 763 },
+            players: StatusResponsePlayers {
+                max: 42,
+                online: 2,
+                sample: vec![
+                    StatusResponsePlayerSample { name: "dinnerbone", id: Uuid::new_v4() },
+                    StatusResponsePlayerSample { name: "keisteen", id: Uuid::new_v4() },
+                ],
+            },
+            description: TextComponent::text("A Keisteen Minecraft Server"),
+            favicon: None,
+            enforces_secure_chat: false,
+        };
+
+        let json_response = serde_json::to_string(&response).unwrap();
 
         connection
             .send_packet(packet::client::status::StatusResponse { json_response: &json_response })
@@ -44,6 +43,34 @@ impl ServerboundPacket for StatusRequest {
 
         Ok(())
     }
+}
+
+#[derive(serde::Serialize)]
+pub struct StatusResponse {
+    pub version: StatusResponseVersion,
+    pub players: StatusResponsePlayers,
+    pub description: TextComponent,
+    pub favicon: Option<String>,
+    pub enforces_secure_chat: bool,
+}
+
+#[derive(serde::Serialize)]
+pub struct StatusResponseVersion {
+    pub name: &'static str,
+    pub protocol: i32,
+}
+
+#[derive(serde::Serialize)]
+pub struct StatusResponsePlayers {
+    pub max: i32,
+    pub online: i32,
+    pub sample: Vec<StatusResponsePlayerSample>,
+}
+
+#[derive(serde::Serialize)]
+pub struct StatusResponsePlayerSample {
+    pub name: &'static str,
+    pub id: Uuid,
 }
 
 #[derive(Debug)]
