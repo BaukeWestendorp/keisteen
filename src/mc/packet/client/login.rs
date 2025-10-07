@@ -11,7 +11,7 @@ impl ClientboundPacket for Disconnect {
     const PACKET_ID: i32 = 0x00;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!();
+        todo!()
     }
 }
 
@@ -22,7 +22,7 @@ impl ClientboundPacket for EncryptionRequest {
     const PACKET_ID: i32 = 0x01;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!();
+        todo!()
     }
 }
 
@@ -62,7 +62,7 @@ impl ClientboundPacket for SetCompression {
     const PACKET_ID: i32 = 0x03;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!();
+        todo!()
     }
 }
 
@@ -73,7 +73,7 @@ impl ClientboundPacket for LoginPluginRequest {
     const PACKET_ID: i32 = 0x04;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!();
+        todo!()
     }
 }
 
@@ -84,6 +84,6 @@ impl ClientboundPacket for CookieRequest {
     const PACKET_ID: i32 = 0x05;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!();
+        todo!()
     }
 }
