@@ -15,7 +15,7 @@ impl VarInt {
         self.0
     }
 
-    pub const fn len(&self) -> usize {
+    pub const fn byte_count(&self) -> usize {
         let mut n = self.0 as u64;
         let mut len = 1;
         while n >= Self::CONTINUE_BIT as u64 {

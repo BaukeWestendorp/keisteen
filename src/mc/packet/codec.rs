@@ -41,7 +41,7 @@ impl Decoder for PacketCodec {
             Err(_) => return Ok(None), // Not enough data to read length
         };
 
-        src.advance(packet_length.len());
+        src.advance(packet_length.byte_count());
         let length = packet_length.raw() as usize;
 
         if length > MAX_PACKET_SIZE {
@@ -65,7 +65,7 @@ impl Decoder for PacketCodec {
             Err(_) => return Ok(None), // Not enough data to read packet id
         };
 
-        src.advance(id.len() as usize);
+        src.advance(id.byte_count());
 
         let data = src.clone().freeze();
 

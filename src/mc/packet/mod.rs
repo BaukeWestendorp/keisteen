@@ -14,7 +14,7 @@ pub struct ClientboundRawPacket {
 
 impl ClientboundRawPacket {
     pub fn length(&self) -> i32 {
-        self.id.len() as i32 + self.data.len() as i32
+        self.id.byte_count() as i32 + self.data.len() as i32
     }
 }
 

@@ -53,7 +53,7 @@ impl BytesExt for Bytes {
             ));
         }
         let string_bytes = self.split_to(length);
-        String::from_utf8(string_bytes.to_vec()).map_err(|err| io::Error::other(err))
+        String::from_utf8(string_bytes.to_vec()).map_err(io::Error::other)
     }
 
     fn try_get_varint(&mut self) -> io::Result<VarInt> {

@@ -15,7 +15,7 @@ impl PlayerList {
     }
 
     pub fn max_players(&self) -> u32 {
-        self.max_players as u32
+        self.max_players
     }
 
     pub fn player_count(&self) -> u32 {
