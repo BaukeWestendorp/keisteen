@@ -3,12 +3,14 @@ use std::io;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use uuid::Uuid;
 
-use crate::mc::types::VarInt;
+use crate::mc::types::{Identifier, VarInt};
 
 pub trait BytesExt: Buf {
     fn try_get_bool(&mut self) -> io::Result<bool>;
 
     fn try_get_prefixed_string(&mut self) -> io::Result<String>;
+
+    fn try_get_identifier(&mut self) -> io::Result<Identifier>;
 
     fn try_get_varint(&mut self) -> io::Result<VarInt>;
 
@@ -22,17 +24,7 @@ pub trait BytesExt: Buf {
     where
         F: Fn(&mut Self) -> io::Result<T>;
 
-    fn try_get_bytes_array<const N: usize>(&mut self) -> io::Result<[u8; N]> {
-        if self.remaining() < N {
-            return Err(io::Error::new(
-                io::ErrorKind::UnexpectedEof,
-                format!("not enough bytes for array of length {N}"),
-            ));
-        }
-        let mut buf = [0u8; N];
-        self.copy_to_slice(&mut buf);
-        Ok(buf)
-    }
+    fn try_get_bytes_array<const N: usize>(&mut self) -> io::Result<[u8; N]>;
 }
 
 impl BytesExt for Bytes {
@@ -54,6 +46,11 @@ impl BytesExt for Bytes {
         }
         let string_bytes = self.split_to(length);
         String::from_utf8(string_bytes.to_vec()).map_err(io::Error::other)
+    }
+
+    fn try_get_identifier(&mut self) -> io::Result<Identifier> {
+        let string = self.try_get_prefixed_string()?;
+        string.parse().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn try_get_varint(&mut self) -> io::Result<VarInt> {
@@ -101,6 +98,18 @@ impl BytesExt for Bytes {
     {
         let has_value = self.try_get_bool()?;
         if has_value { Ok(Some(f(self)?)) } else { Ok(None) }
+    }
+
+    fn try_get_bytes_array<const N: usize>(&mut self) -> io::Result<[u8; N]> {
+        if self.remaining() < N {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                format!("not enough bytes for array of length {N}"),
+            ));
+        }
+        let mut buf = [0u8; N];
+        self.copy_to_slice(&mut buf);
+        Ok(buf)
     }
 }
 
