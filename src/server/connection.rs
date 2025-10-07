@@ -116,6 +116,7 @@ impl Connection {
         let raw_packet = ClientboundRawPacket { id, data };
 
         self.framed_writer.send(raw_packet).await?;
+
         Ok(())
     }
 

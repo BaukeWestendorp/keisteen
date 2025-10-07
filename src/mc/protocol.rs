@@ -3,6 +3,7 @@ use std::io;
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use uuid::Uuid;
 
+use crate::mc::nbt::Nbt;
 use crate::mc::types::{Identifier, VarInt};
 
 pub trait BytesExt: Buf {
@@ -13,6 +14,8 @@ pub trait BytesExt: Buf {
     fn try_get_identifier(&mut self) -> io::Result<Identifier>;
 
     fn try_get_varint(&mut self) -> io::Result<VarInt>;
+
+    fn try_get_nbt(&mut self) -> io::Result<Nbt>;
 
     fn try_get_uuid(&mut self) -> io::Result<Uuid>;
 
@@ -71,6 +74,10 @@ impl BytesExt for Bytes {
         Ok(VarInt::new(value))
     }
 
+    fn try_get_nbt(&mut self) -> io::Result<Nbt> {
+        todo!()
+    }
+
     fn try_get_uuid(&mut self) -> io::Result<Uuid> {
         if self.remaining() < 16 {
             return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "not enough bytes for Uuid"));
@@ -122,6 +129,8 @@ pub trait BytesMutExt {
 
     fn put_varint(&mut self, varint: VarInt);
 
+    fn put_nbt(&mut self, nbt: Nbt);
+
     fn put_uuid(&mut self, uuid: &Uuid);
 
     fn put_prefixed_array<T, F>(&mut self, array: &[T], f: F)
@@ -150,6 +159,10 @@ impl BytesMutExt for BytesMut {
 
     fn put_varint(&mut self, varint: VarInt) {
         self.extend_from_slice(&varint.to_bytes());
+    }
+
+    fn put_nbt(&mut self, nbt: Nbt) {
+        self.put(nbt.as_bytes().as_slice());
     }
 
     fn put_uuid(&mut self, uuid: &Uuid) {

@@ -1,3 +1,4 @@
+pub mod nbt;
 pub mod packet;
 pub mod protocol;
 pub mod registry;
