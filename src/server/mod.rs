@@ -4,18 +4,26 @@ use std::path::PathBuf;
 use tokio::net::TcpListener;
 
 use crate::server::connection::Connection;
+use crate::server::folder::ServerFolder;
 
 pub mod connection;
+pub mod folder;
 pub mod player;
 pub mod player_list;
 
 pub struct Server {
-    _server_folder_path: PathBuf,
+    server_folder: ServerFolder,
 }
 
 impl Server {
-    pub fn new(_server_folder_path: PathBuf) -> Self {
-        Self { _server_folder_path }
+    pub async fn new(server_folder_path: PathBuf) -> io::Result<Self> {
+        let server_folder = ServerFolder::new(server_folder_path).await?;
+
+        Ok(Self { server_folder })
+    }
+
+    pub fn server_folder(&self) -> &ServerFolder {
+        &self.server_folder
     }
 
     pub async fn start(self) -> io::Result<()> {
