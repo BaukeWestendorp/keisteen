@@ -1,8 +1,11 @@
 use bytes::BytesMut;
 
+use crate::mc::nbt::Nbt;
 use crate::mc::packet::KnownPack;
 use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::protocol::BytesMutExt;
+use crate::mc::registry::ResourceLocation;
+use crate::mc::types::Identifier;
 
 #[derive(Debug)]
 pub struct CookieRequest;
@@ -82,14 +85,29 @@ impl ClientboundPacket for ResetChat {
 }
 
 #[derive(Debug)]
-pub struct RegistryData;
+pub struct RegistryData {
+    pub registry_id: Identifier,
+    pub entries: Vec<RegistryDataEntry>,
+}
 
 impl ClientboundPacket for RegistryData {
     const PACKET_ID: i32 = 0x07;
 
-    fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!()
+    fn encode_data(self, bytes: &mut BytesMut) {
+        bytes.put_identifier(&self.registry_id);
+        bytes.put_prefixed_array(&self.entries, |entry, bytes| {
+            bytes.put_resource_location(&entry.entry_id);
+            bytes.put_prefixed_option(&entry.data, |data, bytes| {
+                bytes.put_network_nbt(data);
+            });
+        });
     }
+}
+
+#[derive(Debug)]
+pub struct RegistryDataEntry {
+    pub entry_id: ResourceLocation,
+    pub data: Option<Nbt>,
 }
 
 #[derive(Debug)]

@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::net::SocketAddr;
 
 use bytes::BytesMut;
@@ -8,9 +9,12 @@ use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio_util::codec::{FramedRead, FramedWrite};
 
 use crate::error::KeisteenResult;
+use crate::mc::nbt;
 use crate::mc::packet::client::ClientboundPacket;
+use crate::mc::packet::client::config::RegistryDataEntry;
 use crate::mc::packet::codec::PacketCodec;
 use crate::mc::packet::{self, ClientboundRawPacket, KnownPack, ServerboundRawPacket};
+use crate::mc::registry::{Registry, ResourceLocation};
 use crate::mc::types::VarInt;
 use crate::server::Server;
 
@@ -138,7 +142,51 @@ impl Connection {
     pub async fn send_registry_data(&mut self) -> KeisteenResult<()> {
         log::trace!("sending registry data");
 
-        todo!("send registry data");
+        let registries = self.server().registries();
+
+        let packets = vec![
+            create_packet(registries.banner_patterns())?,
+            // TODO: create_packet(registries.cat_variants())?,
+            // TODO: create_packet(registries.chat_types())?,
+            // TODO: create_packet(registries.chicken_variants())?,
+            // TODO: create_packet(registries.cow_variants())?,
+            // TODO: create_packet(registries.damage_types())?,
+            // TODO: create_packet(registries.dialogs())?,
+            // TODO: create_packet(registries.dimension_types())?,
+            // TODO: create_packet(registries.frog_variants())?,
+            // TODO: create_packet(registries.painting_variants())?,
+            // TODO: create_packet(registries.pig_variants())?,
+            // TODO: create_packet(registries.trim_materials())?,
+            // TODO: create_packet(registries.trim_patterns())?,
+            // TODO: create_packet(registries.wolf_sound_variants())?,
+            // TODO: create_packet(registries.wolf_variants())?,
+            // TODO: create_packet(registries.worldgen_biomes())?,
+        ];
+
+        for packet in packets {
+            self.send_packet(packet).await?;
+        }
+
+        fn create_packet<R: Registry + serde::Serialize>(
+            registry_entries: &BTreeMap<ResourceLocation, R>,
+        ) -> KeisteenResult<packet::client::config::RegistryData> {
+            Ok(packet::client::config::RegistryData {
+                registry_id: R::identifier(),
+                entries: {
+                    let mut entries = Vec::new();
+                    for (identifier, entry) in registry_entries {
+                        let entry_nbt = nbt::to_nbt("", entry)?;
+                        entries.push(RegistryDataEntry {
+                            entry_id: identifier.clone(),
+                            data: Some(entry_nbt),
+                        });
+                    }
+                    entries
+                },
+            })
+        }
+
+        Ok(())
     }
 }
 

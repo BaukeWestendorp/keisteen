@@ -4,6 +4,7 @@ use bytes::{Buf, BufMut, Bytes, BytesMut};
 use uuid::Uuid;
 
 use crate::mc::nbt::Nbt;
+use crate::mc::registry::ResourceLocation;
 use crate::mc::types::{Identifier, VarInt};
 
 pub trait BytesExt: Buf {
@@ -13,9 +14,13 @@ pub trait BytesExt: Buf {
 
     fn try_get_identifier(&mut self) -> io::Result<Identifier>;
 
+    fn try_get_resource_location(&mut self) -> io::Result<ResourceLocation>;
+
     fn try_get_varint(&mut self) -> io::Result<VarInt>;
 
-    fn try_get_nbt(&mut self) -> io::Result<Nbt>;
+    fn try_get_named_nbt(&mut self) -> io::Result<Nbt>;
+
+    fn try_get_network_nbt(&mut self) -> io::Result<Nbt>;
 
     fn try_get_uuid(&mut self) -> io::Result<Uuid>;
 
@@ -56,6 +61,11 @@ impl BytesExt for Bytes {
         string.parse().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
+    fn try_get_resource_location(&mut self) -> io::Result<ResourceLocation> {
+        let string = self.try_get_prefixed_string()?;
+        string.parse().map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+    }
+
     fn try_get_varint(&mut self) -> io::Result<VarInt> {
         let mut value = 0;
         let mut position = 0;
@@ -74,7 +84,11 @@ impl BytesExt for Bytes {
         Ok(VarInt::new(value))
     }
 
-    fn try_get_nbt(&mut self) -> io::Result<Nbt> {
+    fn try_get_named_nbt(&mut self) -> io::Result<Nbt> {
+        todo!()
+    }
+
+    fn try_get_network_nbt(&mut self) -> io::Result<Nbt> {
         todo!()
     }
 
@@ -127,9 +141,13 @@ pub trait BytesMutExt {
 
     fn put_identifier(&mut self, identifier: &Identifier);
 
+    fn put_resource_location(&mut self, rec_loc: &ResourceLocation);
+
     fn put_varint(&mut self, varint: VarInt);
 
-    fn put_nbt(&mut self, nbt: Nbt);
+    fn put_named_nbt(&mut self, nbt: &Nbt);
+
+    fn put_network_nbt(&mut self, nbt: &Nbt);
 
     fn put_uuid(&mut self, uuid: &Uuid);
 
@@ -157,12 +175,20 @@ impl BytesMutExt for BytesMut {
         self.put_prefixed_string(&identifier.to_string());
     }
 
+    fn put_resource_location(&mut self, rec_loc: &ResourceLocation) {
+        self.put_prefixed_string(&rec_loc.to_string());
+    }
+
     fn put_varint(&mut self, varint: VarInt) {
         self.extend_from_slice(&varint.to_bytes());
     }
 
-    fn put_nbt(&mut self, nbt: Nbt) {
-        self.put(nbt.as_bytes().as_slice());
+    fn put_named_nbt(&mut self, nbt: &Nbt) {
+        self.put(nbt.as_named_bytes().as_slice());
+    }
+
+    fn put_network_nbt(&mut self, nbt: &Nbt) {
+        self.put(nbt.as_network_bytes().as_slice());
     }
 
     fn put_uuid(&mut self, uuid: &Uuid) {
