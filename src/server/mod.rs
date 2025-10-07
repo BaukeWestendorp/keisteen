@@ -24,9 +24,8 @@ impl Server {
         loop {
             let (socket, addr) = listener.accept().await?;
 
-            let connection = Connection::new(socket, addr);
-
             tokio::spawn(async move {
+                let connection = Connection::new(socket, addr);
                 if let Err(err) = connection.start().await {
                     log::error!("connection error: {}", err)
                 };
