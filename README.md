@@ -49,7 +49,7 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 	- [ ] Keep-alive packets
 	- [ ] Ping-pong packets
 	- [ ] Resource packs
-	- [ ] Synchronize known packs
+	- [x] Synchronize known packs
 	- [ ] Handle custom click action
 	- [ ] Reset chat packet
 	- [ ] Registry packets
