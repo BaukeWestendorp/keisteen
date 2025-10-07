@@ -1,12 +1,13 @@
 use bytes::BytesMut;
 
 use crate::mc::packet::client::ClientboundPacket;
+use crate::mc::protocol::BytesMutExt;
 
 #[derive(Debug)]
 pub struct CookieRequest;
 
 impl ClientboundPacket for CookieRequest {
-    const PACKET_ID: i32 = 0x01;
+    const PACKET_ID: i32 = 0x00;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -17,7 +18,7 @@ impl ClientboundPacket for CookieRequest {
 pub struct PluginMessage;
 
 impl ClientboundPacket for PluginMessage {
-    const PACKET_ID: i32 = 0x02;
+    const PACKET_ID: i32 = 0x01;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -28,7 +29,7 @@ impl ClientboundPacket for PluginMessage {
 pub struct Disconnect;
 
 impl ClientboundPacket for Disconnect {
-    const PACKET_ID: i32 = 0x03;
+    const PACKET_ID: i32 = 0x02;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -39,7 +40,7 @@ impl ClientboundPacket for Disconnect {
 pub struct FinishConfiguration;
 
 impl ClientboundPacket for FinishConfiguration {
-    const PACKET_ID: i32 = 0x04;
+    const PACKET_ID: i32 = 0x03;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -50,7 +51,7 @@ impl ClientboundPacket for FinishConfiguration {
 pub struct KeepAlive;
 
 impl ClientboundPacket for KeepAlive {
-    const PACKET_ID: i32 = 0x05;
+    const PACKET_ID: i32 = 0x04;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -61,7 +62,7 @@ impl ClientboundPacket for KeepAlive {
 pub struct Ping;
 
 impl ClientboundPacket for Ping {
-    const PACKET_ID: i32 = 0x06;
+    const PACKET_ID: i32 = 0x05;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -72,7 +73,7 @@ impl ClientboundPacket for Ping {
 pub struct ResetChat;
 
 impl ClientboundPacket for ResetChat {
-    const PACKET_ID: i32 = 0x07;
+    const PACKET_ID: i32 = 0x06;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -83,7 +84,7 @@ impl ClientboundPacket for ResetChat {
 pub struct RegistryData;
 
 impl ClientboundPacket for RegistryData {
-    const PACKET_ID: i32 = 0x08;
+    const PACKET_ID: i32 = 0x07;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -94,7 +95,7 @@ impl ClientboundPacket for RegistryData {
 pub struct RemoveResourcePack;
 
 impl ClientboundPacket for RemoveResourcePack {
-    const PACKET_ID: i32 = 0x09;
+    const PACKET_ID: i32 = 0x08;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -105,7 +106,7 @@ impl ClientboundPacket for RemoveResourcePack {
 pub struct AddResourcePack;
 
 impl ClientboundPacket for AddResourcePack {
-    const PACKET_ID: i32 = 0x0A;
+    const PACKET_ID: i32 = 0x09;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -116,7 +117,7 @@ impl ClientboundPacket for AddResourcePack {
 pub struct StoreCookie;
 
 impl ClientboundPacket for StoreCookie {
-    const PACKET_ID: i32 = 0x0B;
+    const PACKET_ID: i32 = 0x0A;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -127,7 +128,7 @@ impl ClientboundPacket for StoreCookie {
 pub struct Transfer;
 
 impl ClientboundPacket for Transfer {
-    const PACKET_ID: i32 = 0x0C;
+    const PACKET_ID: i32 = 0x0B;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -138,7 +139,7 @@ impl ClientboundPacket for Transfer {
 pub struct FeatureFlags;
 
 impl ClientboundPacket for FeatureFlags {
-    const PACKET_ID: i32 = 0x0D;
+    const PACKET_ID: i32 = 0x0C;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -149,7 +150,7 @@ impl ClientboundPacket for FeatureFlags {
 pub struct UpdateTags;
 
 impl ClientboundPacket for UpdateTags {
-    const PACKET_ID: i32 = 0x0E;
+    const PACKET_ID: i32 = 0x0D;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -160,7 +161,7 @@ impl ClientboundPacket for UpdateTags {
 pub struct KnownPacks;
 
 impl ClientboundPacket for KnownPacks {
-    const PACKET_ID: i32 = 0x0F;
+    const PACKET_ID: i32 = 0x0E;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -171,7 +172,7 @@ impl ClientboundPacket for KnownPacks {
 pub struct CustomReportDetails;
 
 impl ClientboundPacket for CustomReportDetails {
-    const PACKET_ID: i32 = 0x10;
+    const PACKET_ID: i32 = 0x0F;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -182,7 +183,7 @@ impl ClientboundPacket for CustomReportDetails {
 pub struct ServerLinks;
 
 impl ClientboundPacket for ServerLinks {
-    const PACKET_ID: i32 = 0x11;
+    const PACKET_ID: i32 = 0x10;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -193,7 +194,7 @@ impl ClientboundPacket for ServerLinks {
 pub struct ClearDialog;
 
 impl ClientboundPacket for ClearDialog {
-    const PACKET_ID: i32 = 0x12;
+    const PACKET_ID: i32 = 0x11;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
@@ -204,7 +205,7 @@ impl ClientboundPacket for ClearDialog {
 pub struct ShowDialog;
 
 impl ClientboundPacket for ShowDialog {
-    const PACKET_ID: i32 = 0x13;
+    const PACKET_ID: i32 = 0x12;
 
     fn encode_data(self, _bytes: &mut BytesMut) {
         todo!()
