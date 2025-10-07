@@ -1,5 +1,6 @@
 use bytes::BytesMut;
 
+use crate::mc::packet::KnownPack;
 use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::protocol::BytesMutExt;
 
@@ -158,13 +159,19 @@ impl ClientboundPacket for UpdateTags {
 }
 
 #[derive(Debug)]
-pub struct KnownPacks;
+pub struct KnownPacks {
+    pub known_packs: Vec<KnownPack>,
+}
 
 impl ClientboundPacket for KnownPacks {
     const PACKET_ID: i32 = 0x0E;
 
-    fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!()
+    fn encode_data(self, bytes: &mut BytesMut) {
+        bytes.put_prefixed_array(&self.known_packs, |packs, bytes| {
+            bytes.put_prefixed_string(&packs.namespace);
+            bytes.put_prefixed_string(&packs.id);
+            bytes.put_prefixed_string(&packs.version);
+        });
     }
 }
 

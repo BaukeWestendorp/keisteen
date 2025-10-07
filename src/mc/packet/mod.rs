@@ -23,3 +23,10 @@ pub struct ServerboundRawPacket {
     pub id: VarInt,
     pub data: Bytes,
 }
+
+#[derive(Debug)]
+pub struct KnownPack {
+    pub namespace: String,
+    pub id: String,
+    pub version: String,
+}

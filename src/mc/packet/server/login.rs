@@ -92,6 +92,8 @@ impl ServerboundPacket for LoginAcknowledged {
 
         connection.set_state(ConnectionState::Config);
 
+        connection.synchronize_known_packs().await?;
+
         Ok(())
     }
 }

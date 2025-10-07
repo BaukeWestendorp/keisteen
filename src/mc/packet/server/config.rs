@@ -1,8 +1,8 @@
 use bytes::{Buf, Bytes};
 
 use crate::error::KeisteenResult;
-use crate::mc::packet::ServerboundRawPacket;
 use crate::mc::packet::server::ServerboundPacket;
+use crate::mc::packet::{KnownPack, ServerboundRawPacket};
 use crate::mc::protocol::BytesExt;
 use crate::mc::types::{Identifier, VarInt};
 use crate::server::connection::Connection;
@@ -140,17 +140,29 @@ impl ServerboundPacket for ResourcePackResponse {
 }
 
 #[derive(Debug)]
-pub struct KnownPacks;
+pub struct KnownPacks {
+    pub known_packs: Vec<KnownPack>,
+}
 
 impl ServerboundPacket for KnownPacks {
     const PACKET_ID: i32 = 0x07;
 
-    fn decode_data(_bytes: Bytes) -> KeisteenResult<Self> {
-        todo!()
+    fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
+        Ok(Self {
+            known_packs: bytes.try_get_prefixed_array(|bytes| {
+                Ok(KnownPack {
+                    namespace: bytes.try_get_prefixed_string()?,
+                    id: bytes.try_get_prefixed_string()?,
+                    version: bytes.try_get_prefixed_string()?,
+                })
+            })?,
+        })
     }
 
     async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
-        todo!()
+        log::trace!("<<< {self:?}");
+
+        Ok(())
     }
 }
 

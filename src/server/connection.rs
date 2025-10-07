@@ -10,7 +10,7 @@ use tokio_util::codec::{FramedRead, FramedWrite};
 use crate::error::KeisteenResult;
 use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::packet::codec::PacketCodec;
-use crate::mc::packet::{self, ClientboundRawPacket, ServerboundRawPacket};
+use crate::mc::packet::{self, ClientboundRawPacket, KnownPack, ServerboundRawPacket};
 use crate::mc::types::VarInt;
 use crate::server::Server;
 
@@ -85,8 +85,6 @@ impl Connection {
     }
 
     async fn handle_raw_packet(&mut self, packet: ServerboundRawPacket) -> KeisteenResult<()> {
-        log::trace!("received packet in state '{:?}': {:?}", self.state, packet);
-
         match self.state {
             ConnectionState::Handshake => {
                 packet::server::handshake::handle_raw_packet(packet, self).await?;
@@ -118,6 +116,21 @@ impl Connection {
         let raw_packet = ClientboundRawPacket { id, data };
 
         self.framed_writer.send(raw_packet).await?;
+        Ok(())
+    }
+
+    pub async fn synchronize_known_packs(&mut self) -> KeisteenResult<()> {
+        log::trace!("synchronizing known packs");
+
+        // TODO: Fill with actual known packs.
+        let known_packs = vec![KnownPack {
+            namespace: "minecraft".to_string(),
+            id: "core".to_string(),
+            version: crate::MC_VERSION.to_string(),
+        }];
+
+        self.send_packet(packet::client::config::KnownPacks { known_packs }).await?;
+
         Ok(())
     }
 }
