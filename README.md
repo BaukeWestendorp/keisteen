@@ -35,7 +35,9 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
 	- [ ] Compression
 	- [ ] Login plugin request packet
 	- [ ] Cookie packets
-	- [ ] Send player properties
+	- [ ] Login finishing
+	  - [x] Get out of finish state
+	  - [ ] Send player properties
 - [ ] Transfer
 - [ ] Configuration
 	- [ ] Use client information to store their settings
