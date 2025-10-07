@@ -9,9 +9,9 @@ use tokio_util::codec::{FramedRead, FramedWrite};
 
 use crate::error::KeisteenResult;
 use crate::mc::packet::client::ClientboundPacket;
+use crate::mc::packet::codec::PacketCodec;
 use crate::mc::packet::{self, ClientboundRawPacket, ServerboundRawPacket};
 use crate::mc::types::VarInt;
-use crate::server::packet_codec::PacketCodec;
 
 pub struct Connection {
     running: bool,

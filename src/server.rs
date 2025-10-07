@@ -6,7 +6,6 @@ use tokio::net::TcpListener;
 use crate::server::connection::Connection;
 
 pub mod connection;
-pub mod packet_codec;
 
 pub struct Server {
     _server_folder_path: PathBuf,

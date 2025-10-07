@@ -3,6 +3,7 @@ use bytes::{Bytes, BytesMut};
 use crate::mc::types::VarInt;
 
 pub mod client;
+pub mod codec;
 pub mod server;
 
 #[derive(Debug)]
