@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::error::KeisteenResult;
 use crate::mc::packet::ServerboundRawPacket;
 use crate::mc::packet::server::ServerboundPacket;
-use crate::mc::protocol::ProtocolRead;
+use crate::mc::protocol::BytesExt;
 use crate::server::connection::Connection;
 
 #[derive(Debug)]
@@ -17,7 +17,7 @@ impl ServerboundPacket for LoginStart {
     const PACKET_ID: i32 = 0x00;
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
-        Ok(Self { name: String::read(&mut bytes)?, player_uuid: Uuid::read(&mut bytes)? })
+        Ok(Self { name: bytes.try_get_prefixed_string()?, player_uuid: bytes.try_get_uuid()? })
     }
 
     async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
@@ -37,8 +37,8 @@ impl ServerboundPacket for EncryptionResponse {
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
         Ok(Self {
-            shared_secret: <[u8; 16]>::read(&mut bytes)?,
-            verify_token: <[u8; 4]>::read(&mut bytes)?,
+            shared_secret: bytes.try_get_bytes_array()?,
+            verify_token: bytes.try_get_bytes_array()?,
         })
     }
 

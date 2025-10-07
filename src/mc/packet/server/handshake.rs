@@ -1,9 +1,9 @@
-use bytes::Bytes;
+use bytes::{Buf, Bytes};
 
 use crate::error::KeisteenResult;
 use crate::mc::packet::ServerboundRawPacket;
 use crate::mc::packet::server::ServerboundPacket;
-use crate::mc::protocol::ProtocolRead;
+use crate::mc::protocol::BytesExt;
 use crate::mc::types::VarInt;
 use crate::server::connection::{Connection, ConnectionState};
 
@@ -20,10 +20,10 @@ impl ServerboundPacket for Handshake {
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
         Ok(Self {
-            protocol_version: VarInt::read(&mut bytes)?,
-            server_address: String::read(&mut bytes)?,
-            server_port: u16::read(&mut bytes)?,
-            intent: VarInt::read(&mut bytes)?,
+            protocol_version: bytes.try_get_varint()?,
+            server_address: bytes.try_get_prefixed_string()?,
+            server_port: bytes.try_get_u16()?,
+            intent: bytes.try_get_varint()?,
         })
     }
 

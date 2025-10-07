@@ -1,9 +1,8 @@
-use bytes::Bytes;
+use bytes::{Buf, Bytes};
 
 use crate::error::KeisteenResult;
 use crate::mc::packet::server::ServerboundPacket;
 use crate::mc::packet::{self, ServerboundRawPacket};
-use crate::mc::protocol::ProtocolRead;
 use crate::server::connection::Connection;
 
 #[derive(Debug)]
@@ -56,7 +55,7 @@ impl ServerboundPacket for PingRequest {
     const PACKET_ID: i32 = 0x01;
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
-        Ok(Self { timestamp: i64::read(&mut bytes)? })
+        Ok(Self { timestamp: bytes.try_get_i64()? })
     }
 
     async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {

@@ -1,7 +1,7 @@
-use bytes::BytesMut;
+use bytes::{BufMut, BytesMut};
 
 use crate::mc::packet::client::ClientboundPacket;
-use crate::mc::protocol::ProtocolWrite;
+use crate::mc::protocol::BytesMutExt;
 
 #[derive(Debug)]
 pub struct StatusResponse<'a> {
@@ -12,7 +12,7 @@ impl<'a> ClientboundPacket for StatusResponse<'a> {
     const PACKET_ID: i32 = 0x00;
 
     fn encode_data(self, bytes: &mut BytesMut) {
-        self.json_response.write(bytes);
+        bytes.put_prefixed_string(self.json_response);
     }
 }
 
@@ -25,6 +25,6 @@ impl ClientboundPacket for PongResponse {
     const PACKET_ID: i32 = 0x01;
 
     fn encode_data(self, bytes: &mut BytesMut) {
-        self.timestamp.write(bytes);
+        bytes.put_i64(self.timestamp);
     }
 }

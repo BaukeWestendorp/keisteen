@@ -2,7 +2,7 @@ use bytes::BytesMut;
 use uuid::Uuid;
 
 use crate::mc::packet::client::ClientboundPacket;
-use crate::mc::protocol::{ProtocolPrefixedWrite, ProtocolWrite};
+use crate::mc::protocol::BytesMutExt;
 
 #[derive(Debug)]
 pub struct LoginSuccess<'a> {
@@ -13,7 +13,7 @@ impl<'a> ClientboundPacket for LoginSuccess<'a> {
     const PACKET_ID: i32 = 0x02;
 
     fn encode_data(self, bytes: &mut BytesMut) {
-        self.game_profile.write(bytes);
+        self.game_profile.encode_data(bytes);
     }
 }
 
@@ -24,11 +24,11 @@ pub struct GameProfile<'a> {
     pub properties: Vec<GameProfileProperty<'a>>,
 }
 
-impl<'a> ProtocolWrite for GameProfile<'a> {
-    fn write(&self, bytes: &mut BytesMut) {
-        self.uuid.write(bytes);
-        self.username.write(bytes);
-        self.properties.write_prefixed(bytes);
+impl<'a> GameProfile<'a> {
+    fn encode_data(&self, bytes: &mut BytesMut) {
+        bytes.put_uuid(&self.uuid);
+        bytes.put_prefixed_string(self.username);
+        bytes.put_prefixed_array(&self.properties, |prop, bytes| prop.encode_data(bytes));
     }
 }
 
@@ -39,10 +39,10 @@ pub struct GameProfileProperty<'a> {
     pub signature: Option<&'a str>,
 }
 
-impl<'a> ProtocolWrite for GameProfileProperty<'a> {
-    fn write(&self, bytes: &mut BytesMut) {
-        self.name.write(bytes);
-        self.value.write(bytes);
-        self.signature.write_prefixed(bytes);
+impl<'a> GameProfileProperty<'a> {
+    fn encode_data(&self, bytes: &mut BytesMut) {
+        bytes.put_prefixed_string(self.name);
+        bytes.put_prefixed_string(self.value);
+        bytes.put_prefixed_option(&self.signature, |sig, bytes| bytes.put_prefixed_string(sig));
     }
 }

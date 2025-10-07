@@ -3,7 +3,7 @@ use tokio::io;
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::mc::packet::{ClientboundRawPacket, ServerboundRawPacket};
-use crate::mc::protocol::ProtocolWrite;
+use crate::mc::protocol::BytesMutExt;
 use crate::mc::types::VarInt;
 
 const MAX_PACKET_SIZE: usize = 2097151; // 2^21 - 1
@@ -18,8 +18,8 @@ impl Encoder<ClientboundRawPacket> for PacketCodec {
         packet: ClientboundRawPacket,
         destination: &mut BytesMut,
     ) -> Result<(), Self::Error> {
-        VarInt::new(packet.length()).write(destination);
-        packet.id.write(destination);
+        destination.put_varint(VarInt::new(packet.length()));
+        destination.put_varint(packet.id);
         destination.put(packet.data.freeze());
         Ok(())
     }
