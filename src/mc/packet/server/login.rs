@@ -9,15 +9,15 @@ use crate::server::connection::Connection;
 
 #[derive(Debug)]
 pub struct LoginStart {
-    pub _name: String,
-    pub _player_uuid: Uuid,
+    pub name: String,
+    pub player_uuid: Uuid,
 }
 
 impl ServerboundPacket for LoginStart {
     const PACKET_ID: i32 = 0x00;
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
-        Ok(Self { _name: String::read(&mut bytes)?, _player_uuid: Uuid::read(&mut bytes)? })
+        Ok(Self { name: String::read(&mut bytes)?, player_uuid: Uuid::read(&mut bytes)? })
     }
 
     async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
@@ -28,8 +28,8 @@ impl ServerboundPacket for LoginStart {
 
 #[derive(Debug)]
 pub struct EncryptionResponse {
-    pub _shared_secret: [u8; 16],
-    pub _verify_token: [u8; 4],
+    pub shared_secret: [u8; 16],
+    pub verify_token: [u8; 4],
 }
 
 impl ServerboundPacket for EncryptionResponse {
@@ -37,8 +37,8 @@ impl ServerboundPacket for EncryptionResponse {
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
         Ok(Self {
-            _shared_secret: <[u8; 16]>::read(&mut bytes)?,
-            _verify_token: <[u8; 4]>::read(&mut bytes)?,
+            shared_secret: <[u8; 16]>::read(&mut bytes)?,
+            verify_token: <[u8; 4]>::read(&mut bytes)?,
         })
     }
 

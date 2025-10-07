@@ -5,9 +5,9 @@ use clap::Parser;
 use crate::mc::types::VarInt;
 use crate::server::Server;
 
-pub(crate) mod error;
-pub(crate) mod mc;
-pub(crate) mod server;
+pub mod error;
+pub mod mc;
+pub mod server;
 
 pub const BRAND: &str = "Keisteen";
 pub const MC_VERSION: &str = "1.21.9";

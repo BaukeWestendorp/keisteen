@@ -16,6 +16,7 @@ pub trait ServerboundPacket: Debug {
     where
         Self: Sized;
 
+    #[allow(async_fn_in_trait)]
     async fn handle(self, connection: &mut Connection) -> KeisteenResult<()>
     where
         Self: Sized;
