@@ -118,6 +118,8 @@ pub trait BytesMutExt {
 
     fn put_prefixed_string(&mut self, string: &str);
 
+    fn put_identifier(&mut self, identifier: &Identifier);
+
     fn put_varint(&mut self, varint: VarInt);
 
     fn put_uuid(&mut self, uuid: &Uuid);
@@ -140,6 +142,10 @@ impl BytesMutExt for BytesMut {
         let length = VarInt::new(string.len() as i32);
         self.put_varint(length);
         self.put_slice(string.as_bytes());
+    }
+
+    fn put_identifier(&mut self, identifier: &Identifier) {
+        self.put_prefixed_string(&identifier.to_string());
     }
 
     fn put_varint(&mut self, varint: VarInt) {
