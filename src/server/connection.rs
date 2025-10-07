@@ -79,7 +79,7 @@ impl Connection {
                 packet::server::status::handle_raw_packet(packet, self).await?;
             }
             ConnectionState::Login => {
-                // packet::server::login::handle_raw_packet(packet, self).await?;
+                packet::server::login::handle_raw_packet(packet, self).await?;
             }
             ConnectionState::Config => {
                 // packet::server::config::handle_raw_packet(packet, self).await?;

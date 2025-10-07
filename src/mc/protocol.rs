@@ -210,3 +210,21 @@ impl<T: ProtocolWrite> ProtocolPrefixedWrite for Vec<T> {
         }
     }
 }
+
+impl<T: ProtocolRead + Default + Copy, const N: usize> ProtocolRead for [T; N] {
+    fn read(bytes: &mut Bytes) -> io::Result<Self> {
+        let mut values = [T::default(); N];
+        for value in &mut values {
+            *value = T::read(bytes)?;
+        }
+        Ok(values)
+    }
+}
+
+impl<T: ProtocolWrite, const N: usize> ProtocolWrite for [T; N] {
+    fn write(&self, bytes: &mut BytesMut) {
+        for value in self {
+            value.write(bytes);
+        }
+    }
+}

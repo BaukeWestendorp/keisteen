@@ -9,9 +9,9 @@ use crate::server::connection::{Connection, ConnectionState};
 
 #[derive(Debug)]
 pub struct Handshake {
-    pub protocol_version: VarInt,
-    pub server_address: String,
-    pub server_port: u16,
+    pub _protocol_version: VarInt,
+    pub _server_address: String,
+    pub _server_port: u16,
     pub intent: VarInt,
 }
 
@@ -20,9 +20,9 @@ impl ServerboundPacket for Handshake {
 
     fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
         Ok(Self {
-            protocol_version: VarInt::read(&mut bytes)?,
-            server_address: String::read(&mut bytes)?,
-            server_port: u16::read(&mut bytes)?,
+            _protocol_version: VarInt::read(&mut bytes)?,
+            _server_address: String::read(&mut bytes)?,
+            _server_port: u16::read(&mut bytes)?,
             intent: VarInt::read(&mut bytes)?,
         })
     }

@@ -6,6 +6,7 @@ use crate::server::connection::Connection;
 use bytes::Bytes;
 
 pub mod handshake;
+pub mod login;
 pub mod status;
 
 pub trait ServerboundPacket: Debug {
