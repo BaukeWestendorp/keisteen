@@ -1,4 +1,4 @@
-use std::{fmt, io, ops};
+use std::{fmt, ops};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct VarInt(i32);
@@ -34,30 +34,6 @@ impl VarInt {
         }
         bytes.push(n as u8);
         bytes
-    }
-
-    pub fn from_reader<R: io::Read>(reader: &mut R) -> io::Result<Self> {
-        let mut value = 0;
-        let mut position = 0;
-
-        let mut next_byte = || -> io::Result<u8> {
-            let mut byte_buf = [0];
-            reader.read_exact(&mut byte_buf)?;
-            Ok(byte_buf[0])
-        };
-
-        while let Ok(current_byte) = next_byte() {
-            value |= ((current_byte & Self::SEGMENT_BITS) as i32) << position;
-            if (current_byte & Self::CONTINUE_BIT) == 0 {
-                break;
-            }
-            position += 7;
-            if position >= 32 {
-                return Err(io::Error::new(io::ErrorKind::InvalidData, "VarInt is too big"));
-            }
-        }
-
-        Ok(Self::new(value))
     }
 }
 

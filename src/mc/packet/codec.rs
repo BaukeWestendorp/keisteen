@@ -3,7 +3,7 @@ use tokio::io;
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::mc::packet::{ClientboundRawPacket, ServerboundRawPacket};
-use crate::mc::protocol::BytesMutExt;
+use crate::mc::protocol::{BytesExt, BytesMutExt};
 use crate::mc::types::VarInt;
 
 const MAX_PACKET_SIZE: usize = 2097151; // 2^21 - 1
@@ -21,6 +21,7 @@ impl Encoder<ClientboundRawPacket> for PacketCodec {
         destination.put_varint(VarInt::new(packet.length()));
         destination.put_varint(packet.id);
         destination.put(packet.data.freeze());
+
         Ok(())
     }
 }
@@ -34,9 +35,9 @@ impl Decoder for PacketCodec {
             return Ok(None);
         }
 
-        let mut reader = src.clone().reader();
+        let mut bytes = src.clone().freeze();
 
-        let packet_length = match VarInt::from_reader(&mut reader) {
+        let packet_length = match bytes.try_get_varint() {
             Ok(packet_length) => packet_length,
             Err(_) => return Ok(None), // Not enough data to read length
         };
@@ -60,7 +61,7 @@ impl Decoder for PacketCodec {
             return Ok(None);
         }
 
-        let id = match VarInt::from_reader(&mut reader) {
+        let id = match bytes.try_get_varint() {
             Ok(id) => id,
             Err(_) => return Ok(None), // Not enough data to read packet id
         };
