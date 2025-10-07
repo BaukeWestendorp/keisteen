@@ -96,10 +96,10 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] management-server-tls-keystore
       - [ ] management-server-tls-keystore-password
       - [ ] max-chained-neighbor-updates
-      - [ ] max-players
+      - [x] max-players
       - [ ] max-tick-time
       - [ ] max-world-size
-      - [ ] motd
+      - [x] motd
       - [ ] network-compression-threshold
       - [ ] online-mode
       - [ ] op-permission-level
@@ -116,8 +116,8 @@ There are lots of Minecraft Server implementations written in Rust to be found, 
       - [ ] resource-pack-id
       - [ ] resource-pack-prompt
       - [ ] resource-pack-sha1
-      - [ ] server-ip
-      - [ ] server-port
+      - [x] server-ip
+      - [x] server-port
       - [ ] simulation-distance
       - [ ] spawn-protection
       - [ ] status-heartbeat-interval

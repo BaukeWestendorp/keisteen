@@ -28,12 +28,12 @@ async fn main() {
 
     let Args { path } = Args::parse();
 
-    let Ok(server) = Server::new(path).await else {
+    let Ok(server_instance) = Server::new(path).await else {
         log::error!("failed to create server");
         return;
     };
 
-    if let Err(err) = server.start().await {
+    if let Err(err) = server::start(server_instance).await {
         log::error!("{err}");
     }
 }

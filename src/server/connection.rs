@@ -12,8 +12,11 @@ use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::packet::codec::PacketCodec;
 use crate::mc::packet::{self, ClientboundRawPacket, ServerboundRawPacket};
 use crate::mc::types::VarInt;
+use crate::server::Server;
 
 pub struct Connection {
+    server: Server,
+
     running: bool,
     state: ConnectionState,
 
@@ -22,14 +25,21 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn new(socket: TcpStream, addr: SocketAddr) -> Self {
+    pub fn new(server: Server, socket: TcpStream, addr: SocketAddr) -> Self {
         socket.set_nodelay(true).expect("should set TCP_NODELAY");
 
         log::info!("new connection from {}", addr);
         let (reader, writer) = socket.into_split();
         let framed_reader = FramedRead::new(reader, PacketCodec);
         let framed_writer = FramedWrite::new(writer, PacketCodec);
-        Self { running: false, state: ConnectionState::default(), framed_reader, framed_writer }
+
+        Self {
+            server,
+            running: false,
+            state: ConnectionState::default(),
+            framed_reader,
+            framed_writer,
+        }
     }
 
     pub async fn start(mut self) -> KeisteenResult<()> {
@@ -61,6 +71,10 @@ impl Connection {
 
     pub async fn stop(&mut self) {
         self.running = false;
+    }
+
+    pub fn server(&self) -> &Server {
+        &self.server
     }
 
     pub fn set_state(&mut self, state: ConnectionState) {

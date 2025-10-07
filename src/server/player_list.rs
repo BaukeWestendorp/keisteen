@@ -5,21 +5,21 @@ use uuid::Uuid;
 use crate::server::player::Player;
 
 pub struct PlayerList {
-    max_players: usize,
+    max_players: u32,
     players: HashMap<Uuid, Player>,
 }
 
 impl PlayerList {
-    pub fn new(max_players: usize) -> Self {
+    pub fn new(max_players: u32) -> Self {
         Self { max_players, players: HashMap::new() }
     }
 
-    pub fn max_players(&self) -> usize {
-        self.max_players
+    pub fn max_players(&self) -> u32 {
+        self.max_players as u32
     }
 
-    pub fn player_count(&self) -> usize {
-        self.players.len()
+    pub fn player_count(&self) -> u32 {
+        self.players.len() as u32
     }
 
     pub fn is_empty(&self) -> bool {
