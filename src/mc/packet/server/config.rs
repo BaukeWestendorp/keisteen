@@ -1,22 +1,46 @@
-use bytes::Bytes;
+use bytes::{Buf, Bytes};
 
 use crate::error::KeisteenResult;
 use crate::mc::packet::ServerboundRawPacket;
 use crate::mc::packet::server::ServerboundPacket;
+use crate::mc::protocol::BytesExt;
+use crate::mc::types::{Identifier, VarInt};
 use crate::server::connection::Connection;
 
 #[derive(Debug)]
-pub struct ClientInformation;
+pub struct ClientInformation {
+    pub locale: String,
+    pub view_distance: u8,
+    pub chat_mode: VarInt,
+    pub chat_colors: bool,
+    pub displayed_skin_parts: u8,
+    pub main_hand: VarInt,
+    pub enable_text_filtering: bool,
+    pub allow_server_listings: bool,
+    pub particle_status: VarInt,
+}
 
 impl ServerboundPacket for ClientInformation {
     const PACKET_ID: i32 = 0x00;
 
-    fn decode_data(_bytes: Bytes) -> KeisteenResult<Self> {
-        todo!()
+    fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
+        Ok(Self {
+            locale: bytes.try_get_prefixed_string()?,
+            view_distance: bytes.try_get_u8()?,
+            chat_mode: bytes.try_get_varint()?,
+            chat_colors: bytes.try_get_bool()?,
+            displayed_skin_parts: bytes.try_get_u8()?,
+            main_hand: bytes.try_get_varint()?,
+            enable_text_filtering: bytes.try_get_bool()?,
+            allow_server_listings: bytes.try_get_bool()?,
+            particle_status: bytes.try_get_varint()?,
+        })
     }
 
     async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
-        todo!()
+        log::trace!("<<< {self:?}");
+
+        Ok(())
     }
 }
 
@@ -36,17 +60,22 @@ impl ServerboundPacket for CookieResponse {
 }
 
 #[derive(Debug)]
-pub struct PluginMessage;
+pub struct PluginMessage {
+    pub channel: Identifier,
+    pub data: Bytes,
+}
 
 impl ServerboundPacket for PluginMessage {
     const PACKET_ID: i32 = 0x02;
 
-    fn decode_data(_bytes: Bytes) -> KeisteenResult<Self> {
-        todo!()
+    fn decode_data(mut bytes: Bytes) -> KeisteenResult<Self> {
+        Ok(Self { channel: bytes.try_get_identifier()?, data: bytes.split_to(bytes.len()) })
     }
 
     async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
-        todo!()
+        log::trace!("<<< {self:?}");
+
+        Ok(())
     }
 }
 
