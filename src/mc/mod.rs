@@ -4,6 +4,7 @@ pub mod packet;
 pub mod protocol;
 pub mod registries;
 pub mod resources;
+pub mod sounds;
 pub mod text;
 pub mod types;
 pub mod util;

@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 use std::fs;
 
-use crate::mc::core::ClientAsset;
+use crate::mc::core::{ClientAsset, Holder};
 use crate::mc::resources::ResourceLocation;
+use crate::mc::sounds::SoundEvent;
 use crate::mc::text::TextComponent;
 use crate::mc::types::Identifier;
 use crate::mc::world::entity::SpawnPrioritySelectors;
@@ -13,6 +14,7 @@ mod item;
 
 const REGISTRIES_PATH: &str = "assets/registries/";
 
+#[derive(Debug)]
 pub struct Registries {
     banner_patterns: BTreeMap<ResourceLocation, RegItem<BannerPattern>>,
     cat_variants: BTreeMap<ResourceLocation, RegItem<CatVariant>>,
@@ -21,6 +23,7 @@ pub struct Registries {
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
     damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
 
+    wolf_sound_variant: BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>>,
     wolf_variant: BTreeMap<ResourceLocation, RegItem<WolfVariant>>,
 }
 
@@ -33,6 +36,7 @@ impl Registries {
         let cow_variants = CowVariant::load_from_file();
         let damage_type = DamageType::load_from_file();
 
+        let wolf_sound_variant = WolfSoundVariant::load_from_file();
         let wolf_variant = WolfVariant::load_from_file();
 
         Self {
@@ -43,6 +47,7 @@ impl Registries {
             cow_variants,
             damage_type,
 
+            wolf_sound_variant,
             wolf_variant,
         }
     }
@@ -69,6 +74,10 @@ impl Registries {
 
     pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
         &self.damage_type
+    }
+
+    pub fn wolf_sound_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>> {
+        &self.wolf_sound_variant
     }
 
     pub fn wolf_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<WolfVariant>> {
@@ -278,7 +287,22 @@ pub enum DamageEffects {
 
 // TODO: TrimPattern
 
-// TODO: WolfSoundVariant
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct WolfSoundVariant {
+    pub ambient_sound: Holder<SoundEvent>,
+    pub death_sound: Holder<SoundEvent>,
+    pub growl_sound: Holder<SoundEvent>,
+    pub hurt_sound: Holder<SoundEvent>,
+    pub pant_sound: Holder<SoundEvent>,
+    pub whine_sound: Holder<SoundEvent>,
+}
+
+impl Registry for WolfSoundVariant {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "wolf_sound_variant").unwrap()
+    }
+}
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
