@@ -23,6 +23,7 @@ pub struct Registries {
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
     damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
 
+    painting_variants: BTreeMap<ResourceLocation, RegItem<PaintingVariant>>,
     pig_variants: BTreeMap<ResourceLocation, RegItem<PigVariant>>,
     trim_materials: BTreeMap<ResourceLocation, RegItem<TrimMaterial>>,
     trim_paterns: BTreeMap<ResourceLocation, RegItem<TrimPatern>>,
@@ -39,6 +40,7 @@ impl Registries {
         let cow_variants = CowVariant::load_from_file();
         let damage_type = DamageType::load_from_file();
 
+        let painting_variants = PaintingVariant::load_from_file();
         let pig_variants = PigVariant::load_from_file();
         let trim_materials = TrimMaterial::load_from_file();
         let trim_paterns = TrimPatern::load_from_file();
@@ -53,6 +55,7 @@ impl Registries {
             cow_variants,
             damage_type,
 
+            painting_variants,
             pig_variants,
             trim_materials,
             trim_paterns,
@@ -83,6 +86,10 @@ impl Registries {
 
     pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
         &self.damage_type
+    }
+
+    pub fn painting_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<PaintingVariant>> {
+        &self.painting_variants
     }
 
     pub fn pig_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<PigVariant>> {
@@ -300,7 +307,21 @@ pub enum DamageEffects {
 
 // TODO: FrogVariant
 
-// TODO: PaintingVariant
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct PaintingVariant {
+    pub width: u32,
+    pub height: u32,
+    pub asset_id: ResourceLocation,
+    pub title: Option<TextComponent>,
+    pub author: Option<TextComponent>,
+}
+
+impl Registry for PaintingVariant {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "painting_variant").unwrap()
+    }
+}
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
