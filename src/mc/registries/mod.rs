@@ -23,7 +23,7 @@ pub struct Registries {
     chicken_variants: BTreeMap<ResourceLocation, RegItem<ChickenVariant>>,
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
     damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
-
+    // TODO: dialogs: BTreeMap<ResourceLocation, RegItem<Dialog>>,
     dimension_types: BTreeMap<ResourceLocation, RegItem<DimensionType>>,
     frog_variants: BTreeMap<ResourceLocation, RegItem<FrogVariant>>,
     painting_variants: BTreeMap<ResourceLocation, RegItem<PaintingVariant>>,
@@ -42,7 +42,7 @@ impl Registries {
         let chicken_variants = ChickenVariant::load_from_file();
         let cow_variants = CowVariant::load_from_file();
         let damage_type = DamageType::load_from_file();
-
+        // TODO: let dialogs = Dialog::load_from_file();
         let dimension_types = DimensionType::load_from_file();
         let frog_variants = FrogVariant::load_from_file();
         let painting_variants = PaintingVariant::load_from_file();
@@ -59,7 +59,7 @@ impl Registries {
             chicken_variants,
             cow_variants,
             damage_type,
-
+            // TODO: dialogs,
             dimension_types,
             frog_variants,
             painting_variants,
@@ -94,6 +94,11 @@ impl Registries {
     pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
         &self.damage_type
     }
+
+    // TODO:
+    // pub fn dialogs(&self) -> &BTreeMap<ResourceLocation, RegItem<Dialog>> {
+    //     &self.dialogs
+    // }
 
     pub fn dimension_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DimensionType>> {
         &self.dimension_types
