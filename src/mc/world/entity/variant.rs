@@ -1,12 +1,5 @@
-use crate::mc::core::{BlockPos, HolderSet};
-use crate::mc::registries::{Biome, RegItem, Structure};
-
-pub struct SpawnContext {
-    pub pos: BlockPos,
-    // TODO: Implement
-    // pub level: ServerLevelAccessor,
-    pub biome: RegItem<Biome>,
-}
+use crate::mc::core::HolderSet;
+use crate::mc::registries::{Biome, Structure};
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -26,30 +19,11 @@ pub struct StructureCheck {
     pub structures: HolderSet<Structure>,
 }
 
-// TODO: Implement
-// impl Predicate<SpawnContext> for StructureCheck {
-//     fn test(&self, context: &SpawnContext) -> bool {
-//         context
-//             .level
-//             .getLevel()
-//             .structureManager()
-//             .getStructureWithPieceAt(context.pos, self.structures)
-//             .isValid()
-//     }
-// }
-
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct BiomeCheck {
     pub biomes: HolderSet<Biome>,
 }
-
-// TODO: Implement
-// impl Predicate<SpawnContext> for BiomeCheck {
-//     fn test(&self, context: &SpawnContext) -> bool {
-//         self.biomes.contains(&context.biome)
-//     }
-// }
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -64,13 +38,6 @@ impl Default for MoonBrightnessCheck {
         Self { min: 0.0, max: 1.0 }
     }
 }
-
-// TODO: Implement
-// impl Predicate<SpawnContext> for MoonBrightnessCheck {
-//     fn test(&self, context: &SpawnContext) -> bool {
-//         self.range.contains(context.level.getLevel().getMoonBrightness())
-//     }
-// }
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
