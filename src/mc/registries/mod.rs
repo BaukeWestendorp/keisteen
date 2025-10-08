@@ -207,7 +207,9 @@ impl Registry for CatVariant {
 #[serde(default)]
 pub struct ChatType {
     pub parameters: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<TextComponent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub translation_key: Option<String>,
 }
 
@@ -277,7 +279,9 @@ pub struct DamageType {
     pub message_id: String,
     pub scaling: DamageScaling,
     pub exhaustion: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub effects: Option<DamageEffects>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub death_message_type: Option<DeathMessageType>,
 }
 
@@ -387,7 +391,9 @@ pub struct PaintingVariant {
     pub width: i32,
     pub height: i32,
     pub asset_id: ResourceLocation,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<TextComponent>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub author: Option<TextComponent>,
 }
 
@@ -400,6 +406,7 @@ impl Registry for PaintingVariant {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct PigVariant {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<PigVariantModelType>,
     pub spawn_conditions: SpawnPrioritySelectors,
 }

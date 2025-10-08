@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::net::SocketAddr;
 use std::ops::Deref;
 
-use bytes::BytesMut;
+use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
 use tokio::io::{self, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -153,7 +153,7 @@ impl Connection {
             create_packet(registries.chicken_variants())?,
             create_packet(registries.cow_variants())?,
             create_packet(registries.damage_types())?,
-            // create_packet(registries.dialogs())?,
+            // TODO: create_packet(registries.dialogs())?,
             create_packet(registries.dimension_types())?,
             create_packet(registries.frog_variants())?,
             create_packet(registries.painting_variants())?,
@@ -162,7 +162,7 @@ impl Connection {
             create_packet(registries.trim_patterns())?,
             create_packet(registries.wolf_sound_variants())?,
             create_packet(registries.wolf_variants())?,
-            // create_packet(registries.worldgen_biomes())?,
+            // create_packet(registries.biomes())?,
         ];
 
         for packet in packets {
@@ -178,6 +178,8 @@ impl Connection {
                     let mut entries = Vec::new();
                     for (identifier, entry) in registry_entries {
                         let entry_nbt = nbt::to_nbt("", entry.deref())?;
+                        dbg!(Bytes::copy_from_slice(&entry_nbt.as_network_bytes()));
+                        dbg!(&entry_nbt.as_network_bytes());
                         entries.push(RegistryDataEntry {
                             entry_id: identifier.clone(),
                             data: Some(entry_nbt),

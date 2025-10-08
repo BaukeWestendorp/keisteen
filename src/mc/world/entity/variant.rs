@@ -6,34 +6,22 @@ use crate::mc::registries::{Biome, Structure};
 #[serde(tag = "type")]
 pub enum SpawnCondition {
     #[serde(rename = "minecraft:structure")]
-    Structure(StructureCheck),
+    Structure { structures: HolderSet<Structure> },
     #[serde(rename = "minecraft:biome")]
-    Biome(BiomeCheck),
+    Biome { biomes: HolderSet<Biome> },
     #[serde(rename = "minecraft:moon_brightness")]
-    MoonBrightness(MoonBrightnessCheck),
-}
-
-#[derive(Debug)]
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct StructureCheck {
-    pub structures: HolderSet<Structure>,
-}
-
-#[derive(Debug)]
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct BiomeCheck {
-    pub biomes: HolderSet<Biome>,
+    MoonBrightness { range: MoonBrightnessCheckRange },
 }
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
-pub struct MoonBrightnessCheck {
-    pub min: f64,
-    pub max: f64,
+pub struct MoonBrightnessCheckRange {
+    pub min: f32,
+    pub max: f32,
 }
 
-impl Default for MoonBrightnessCheck {
+impl Default for MoonBrightnessCheckRange {
     fn default() -> Self {
         Self { min: 0.0, max: 1.0 }
     }
@@ -42,6 +30,7 @@ impl Default for MoonBrightnessCheck {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Selector {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub condition: Option<SpawnCondition>,
     pub priority: i32,
 }
