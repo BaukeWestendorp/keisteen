@@ -17,6 +17,7 @@ pub struct Registries {
     cat_variants: BTreeMap<ResourceLocation, RegItem<CatVariant>>,
     chat_types: BTreeMap<ResourceLocation, RegItem<ChatType>>,
     chicken_variants: BTreeMap<ResourceLocation, RegItem<ChickenVariant>>,
+    cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
 }
 
 impl Registries {
@@ -25,8 +26,9 @@ impl Registries {
         let cat_variants = CatVariant::load_from_file();
         let chat_types = ChatType::load_from_file();
         let chicken_variants = ChickenVariant::load_from_file();
+        let cow_variants = CowVariant::load_from_file();
 
-        Self { banner_patterns, cat_variants, chat_types, chicken_variants }
+        Self { banner_patterns, cat_variants, chat_types, chicken_variants, cow_variants }
     }
 
     pub fn banner_patterns(&self) -> &BTreeMap<ResourceLocation, RegItem<BannerPattern>> {
@@ -43,6 +45,10 @@ impl Registries {
 
     pub fn chicken_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<ChickenVariant>> {
         &self.chicken_variants
+    }
+
+    pub fn cow_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<CowVariant>> {
+        &self.cow_variants
     }
 }
 
@@ -146,6 +152,33 @@ pub enum ChickenModel {
     Normal,
     #[serde(rename = "cold")]
     Cold,
+}
+
+#[derive(Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+pub struct CowVariant {
+    pub asset_id: String,
+    pub model: String,
+    pub spawn_conditions: SpawnPrioritySelectors,
+}
+
+impl Registry for CowVariant {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "cow_variant").unwrap()
+    }
+}
+
+#[derive(Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub enum CowModel {
+    #[default]
+    #[serde(rename = "normal")]
+    Normal,
+    #[serde(rename = "cold")]
+    Cold,
+    #[serde(rename = "warm")]
+    Warm,
 }
 
 #[derive(Debug, PartialEq, Eq)]
