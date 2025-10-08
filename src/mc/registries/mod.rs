@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fs;
 
 use crate::mc::core::{ClientAsset, Holder};
@@ -290,7 +290,24 @@ pub enum DamageEffects {
 
 // TODO: PigVariant
 
-// TODO: TrimMaterial
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct TrimMaterial {
+    pub asset_name: MaterialAssetGroup,
+    pub description: TextComponent,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub override_armor_assets: Option<HashMap<ResourceLocation, String>>,
+}
+
+impl Registry for TrimMaterial {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "trim_material").unwrap()
+    }
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct MaterialAssetGroup {}
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -326,7 +343,7 @@ impl Registry for WolfSoundVariant {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct WolfVariant {
-    pub assets: AssetsInfo,
+    pub assets: WolfVariantAssetsInfo,
     pub spawn_conditions: SpawnPrioritySelectors,
 }
 
@@ -338,7 +355,7 @@ impl Registry for WolfVariant {
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
-pub struct AssetsInfo {
+pub struct WolfVariantAssetsInfo {
     pub wild: ClientAsset,
     pub tame: ClientAsset,
     pub angry: ClientAsset,
