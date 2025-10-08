@@ -6,11 +6,14 @@ use crate::mc::nbt::{CompoundTag, Nbt, TAG_END, Tag};
 
 pub struct Serializer {
     output: Tag,
+
+    // TODO: We should probably use a state machine.
+    current_map_key: Option<String>,
 }
 
 impl Serializer {
     pub fn new() -> Self {
-        Self { output: Tag::Compound(Vec::new()) }
+        Self { output: Tag::Compound(Vec::new()), current_map_key: None }
     }
 }
 
@@ -130,9 +133,10 @@ impl<'a> ser::Serializer for &'a mut Serializer {
         self,
         _name: &'static str,
         _variant_index: u32,
-        _variant: &'static str,
+        variant: &'static str,
     ) -> Result<()> {
-        todo!()
+        self.output = Tag::String(variant.to_string());
+        Ok(())
     }
 
     fn serialize_newtype_struct<T>(self, _name: &'static str, value: &T) -> Result<()>
@@ -235,18 +239,38 @@ impl<'a> ser::SerializeMap for &'a mut Serializer {
     type Ok = ();
     type Error = Error;
 
-    fn serialize_key<T>(&mut self, _key: &T) -> Result<()>
+    fn serialize_key<T>(&mut self, key: &T) -> Result<()>
     where
         T: ?Sized + Serialize,
     {
-        todo!("serializing key")
+        let mut serializer = Serializer::new();
+        key.serialize(&mut serializer)?;
+        if let Tag::String(s) = serializer.output {
+            self.current_map_key = Some(s);
+        } else {
+            return Err(Error::Message("map keys must serialize to strings".to_string()));
+        }
+
+        Ok(())
     }
 
-    fn serialize_value<T>(&mut self, _value: &T) -> Result<()>
+    fn serialize_value<T>(&mut self, value: &T) -> Result<()>
     where
         T: ?Sized + Serialize,
     {
-        todo!("serializing value")
+        match &mut self.output {
+            Tag::Compound(tags) => {
+                let mut serializer = Serializer::new();
+                value.serialize(&mut serializer)?;
+                let key = self.current_map_key.take().ok_or_else(|| {
+                    Error::Message("serialize_value called before serialize_key".to_string())
+                })?;
+                tags.push((key.to_string(), serializer.output));
+            }
+            _ => unreachable!("maps are always serialized as compound tags"),
+        }
+
+        Ok(())
     }
 
     fn end(self) -> Result<()> {
@@ -256,6 +280,8 @@ impl<'a> ser::SerializeMap for &'a mut Serializer {
             }
             _ => unreachable!("maps are always serialized as compound tags"),
         }
+
+        self.current_map_key = None;
 
         Ok(())
     }

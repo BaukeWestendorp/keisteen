@@ -384,8 +384,8 @@ impl Registry for FrogVariant {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct PaintingVariant {
-    pub width: u32,
-    pub height: u32,
+    pub width: i32,
+    pub height: i32,
     pub asset_id: ResourceLocation,
     pub title: Option<TextComponent>,
     pub author: Option<TextComponent>,
