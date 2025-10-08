@@ -29,7 +29,7 @@ pub struct Registries {
     painting_variants: BTreeMap<ResourceLocation, RegItem<PaintingVariant>>,
     pig_variants: BTreeMap<ResourceLocation, RegItem<PigVariant>>,
     trim_materials: BTreeMap<ResourceLocation, RegItem<TrimMaterial>>,
-    trim_paterns: BTreeMap<ResourceLocation, RegItem<TrimPatern>>,
+    trim_patterns: BTreeMap<ResourceLocation, RegItem<TrimPatern>>,
     wolf_sound_variant: BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>>,
     wolf_variant: BTreeMap<ResourceLocation, RegItem<WolfVariant>>,
 }
@@ -48,7 +48,7 @@ impl Registries {
         let painting_variants = PaintingVariant::load_from_file();
         let pig_variants = PigVariant::load_from_file();
         let trim_materials = TrimMaterial::load_from_file();
-        let trim_paterns = TrimPatern::load_from_file();
+        let trim_patterns = TrimPatern::load_from_file();
         let wolf_sound_variant = WolfSoundVariant::load_from_file();
         let wolf_variant = WolfVariant::load_from_file();
 
@@ -65,7 +65,7 @@ impl Registries {
             painting_variants,
             pig_variants,
             trim_materials,
-            trim_paterns,
+            trim_patterns,
             wolf_sound_variant,
             wolf_variant,
         }
@@ -120,8 +120,8 @@ impl Registries {
         &self.trim_materials
     }
 
-    pub fn trim_paterns(&self) -> &BTreeMap<ResourceLocation, RegItem<TrimPatern>> {
-        &self.trim_paterns
+    pub fn trim_patterns(&self) -> &BTreeMap<ResourceLocation, RegItem<TrimPatern>> {
+        &self.trim_patterns
     }
 
     pub fn wolf_sound_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>> {
