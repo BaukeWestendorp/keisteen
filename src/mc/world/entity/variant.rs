@@ -1,6 +1,5 @@
-use crate::mc::core::BlockPos;
-use crate::mc::registries::{Biome, RegItem};
-use crate::mc::util::Predicate;
+use crate::mc::core::{BlockPos, HolderSet};
+use crate::mc::registries::{Biome, RegItem, Structure};
 
 pub struct SpawnContext {
     pub pos: BlockPos,
@@ -24,8 +23,7 @@ pub enum SpawnCondition {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct StructureCheck {
-    // TODO: Make `HolderSet<Structure>`
-    pub structures: String,
+    pub structures: HolderSet<Structure>,
 }
 
 // TODO: Implement
@@ -43,14 +41,15 @@ pub struct StructureCheck {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct BiomeCheck {
-    pub biomes: Vec<RegItem<Biome>>,
+    pub biomes: HolderSet<Biome>,
 }
 
-impl Predicate<SpawnContext> for BiomeCheck {
-    fn test(&self, context: &SpawnContext) -> bool {
-        self.biomes.contains(&context.biome)
-    }
-}
+// TODO: Implement
+// impl Predicate<SpawnContext> for BiomeCheck {
+//     fn test(&self, context: &SpawnContext) -> bool {
+//         self.biomes.contains(&context.biome)
+//     }
+// }
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -80,7 +79,7 @@ pub struct Selector {
     pub priority: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(transparent)]
 pub struct SpawnPrioritySelectors {
