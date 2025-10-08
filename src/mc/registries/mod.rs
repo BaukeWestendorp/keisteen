@@ -23,6 +23,7 @@ pub struct Registries {
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
     damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
 
+    trim_paterns: BTreeMap<ResourceLocation, RegItem<TrimPatern>>,
     wolf_sound_variant: BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>>,
     wolf_variant: BTreeMap<ResourceLocation, RegItem<WolfVariant>>,
 }
@@ -36,6 +37,7 @@ impl Registries {
         let cow_variants = CowVariant::load_from_file();
         let damage_type = DamageType::load_from_file();
 
+        let trim_paterns = TrimPatern::load_from_file();
         let wolf_sound_variant = WolfSoundVariant::load_from_file();
         let wolf_variant = WolfVariant::load_from_file();
 
@@ -47,6 +49,7 @@ impl Registries {
             cow_variants,
             damage_type,
 
+            trim_paterns,
             wolf_sound_variant,
             wolf_variant,
         }
@@ -74,6 +77,10 @@ impl Registries {
 
     pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
         &self.damage_type
+    }
+
+    pub fn trim_paterns(&self) -> &BTreeMap<ResourceLocation, RegItem<TrimPatern>> {
+        &self.trim_paterns
     }
 
     pub fn wolf_sound_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>> {
@@ -285,7 +292,19 @@ pub enum DamageEffects {
 
 // TODO: TrimMaterial
 
-// TODO: TrimPattern
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct TrimPatern {
+    pub asset_id: ClientAsset,
+    pub description: TextComponent,
+    pub decal: bool,
+}
+
+impl Registry for TrimPatern {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "trim_pattern").unwrap()
+    }
+}
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
