@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::fs;
 
+use crate::mc::core::ClientAsset;
 use crate::mc::resources::ResourceLocation;
 use crate::mc::text::TextComponent;
 use crate::mc::types::Identifier;
@@ -19,6 +20,8 @@ pub struct Registries {
     chicken_variants: BTreeMap<ResourceLocation, RegItem<ChickenVariant>>,
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
     damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
+
+    wolf_variant: BTreeMap<ResourceLocation, RegItem<WolfVariant>>,
 }
 
 impl Registries {
@@ -30,6 +33,8 @@ impl Registries {
         let cow_variants = CowVariant::load_from_file();
         let damage_type = DamageType::load_from_file();
 
+        let wolf_variant = WolfVariant::load_from_file();
+
         Self {
             banner_patterns,
             cat_variants,
@@ -37,6 +42,8 @@ impl Registries {
             chicken_variants,
             cow_variants,
             damage_type,
+
+            wolf_variant,
         }
     }
 
@@ -62,6 +69,10 @@ impl Registries {
 
     pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
         &self.damage_type
+    }
+
+    pub fn wolf_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<WolfVariant>> {
+        &self.wolf_variant
     }
 }
 
@@ -104,7 +115,7 @@ pub trait Registry: Sized + serde::Serialize + for<'de> serde::Deserialize<'de> 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct BannerPattern {
-    pub asset_id: String,
+    pub asset_id: ClientAsset,
     pub translation_key: String,
 }
 
@@ -117,7 +128,7 @@ impl Registry for BannerPattern {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct CatVariant {
-    pub asset_id: String,
+    pub asset_id: ClientAsset,
     pub spawn_conditions: SpawnPrioritySelectors,
 }
 
@@ -142,12 +153,13 @@ impl Registry for ChatType {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
-#[serde(default)]
 pub struct ChickenVariant {
-    pub asset_id: String,
+    pub asset_id: ClientAsset,
+    #[serde(default)]
     pub model: String,
+    #[serde(default)]
     pub spawn_conditions: SpawnPrioritySelectors,
 }
 
@@ -167,12 +179,13 @@ pub enum ChickenModel {
     Cold,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
-#[serde(default)]
 pub struct CowVariant {
-    pub asset_id: String,
+    pub asset_id: ClientAsset,
+    #[serde(default)]
     pub model: String,
+    #[serde(default)]
     pub spawn_conditions: SpawnPrioritySelectors,
 }
 
