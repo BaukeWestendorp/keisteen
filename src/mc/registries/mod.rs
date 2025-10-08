@@ -18,6 +18,7 @@ pub struct Registries {
     chat_types: BTreeMap<ResourceLocation, RegItem<ChatType>>,
     chicken_variants: BTreeMap<ResourceLocation, RegItem<ChickenVariant>>,
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
+    damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
 }
 
 impl Registries {
@@ -27,8 +28,16 @@ impl Registries {
         let chat_types = ChatType::load_from_file();
         let chicken_variants = ChickenVariant::load_from_file();
         let cow_variants = CowVariant::load_from_file();
+        let damage_type = DamageType::load_from_file();
 
-        Self { banner_patterns, cat_variants, chat_types, chicken_variants, cow_variants }
+        Self {
+            banner_patterns,
+            cat_variants,
+            chat_types,
+            chicken_variants,
+            cow_variants,
+            damage_type,
+        }
     }
 
     pub fn banner_patterns(&self) -> &BTreeMap<ResourceLocation, RegItem<BannerPattern>> {
@@ -49,6 +58,10 @@ impl Registries {
 
     pub fn cow_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<CowVariant>> {
         &self.cow_variants
+    }
+
+    pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
+        &self.damage_type
     }
 }
 
@@ -179,6 +192,63 @@ pub enum CowModel {
     Cold,
     #[serde(rename = "warm")]
     Warm,
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct DamageType {
+    pub message_id: String,
+    pub scaling: DamageScaling,
+    pub exhaustion: f32,
+    pub effects: Option<DamageEffects>,
+    pub death_message_type: Option<DeathMessageType>,
+}
+
+impl Registry for DamageType {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "damage_type").unwrap()
+    }
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub enum DamageScaling {
+    #[serde(rename = "never")]
+    Never,
+    #[serde(rename = "when_caused_by_living_non_player")]
+    WhenCausedByLivingNonPlayer,
+    #[serde(rename = "always")]
+    Always,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub enum DeathMessageType {
+    #[default]
+    #[serde(rename = "default")]
+    Default,
+    #[serde(rename = "fall_variants")]
+    FallVariants,
+    #[serde(rename = "intentional_game_design")]
+    IntentionalGameDesign,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub enum DamageEffects {
+    #[default]
+    #[serde(rename = "hurt")]
+    Hurt,
+    #[serde(rename = "thorns")]
+    Thorns,
+    #[serde(rename = "drowning")]
+    Drowning,
+    #[serde(rename = "burning")]
+    Burning,
+    #[serde(rename = "poking")]
+    Poking,
+    #[serde(rename = "freezing")]
+    Freezing,
 }
 
 #[derive(Debug, PartialEq, Eq)]
