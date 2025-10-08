@@ -23,6 +23,8 @@ pub struct Registries {
     cow_variants: BTreeMap<ResourceLocation, RegItem<CowVariant>>,
     damage_type: BTreeMap<ResourceLocation, RegItem<DamageType>>,
 
+    pig_variants: BTreeMap<ResourceLocation, RegItem<PigVariant>>,
+    trim_materials: BTreeMap<ResourceLocation, RegItem<TrimMaterial>>,
     trim_paterns: BTreeMap<ResourceLocation, RegItem<TrimPatern>>,
     wolf_sound_variant: BTreeMap<ResourceLocation, RegItem<WolfSoundVariant>>,
     wolf_variant: BTreeMap<ResourceLocation, RegItem<WolfVariant>>,
@@ -37,6 +39,8 @@ impl Registries {
         let cow_variants = CowVariant::load_from_file();
         let damage_type = DamageType::load_from_file();
 
+        let pig_variants = PigVariant::load_from_file();
+        let trim_materials = TrimMaterial::load_from_file();
         let trim_paterns = TrimPatern::load_from_file();
         let wolf_sound_variant = WolfSoundVariant::load_from_file();
         let wolf_variant = WolfVariant::load_from_file();
@@ -49,6 +53,8 @@ impl Registries {
             cow_variants,
             damage_type,
 
+            pig_variants,
+            trim_materials,
             trim_paterns,
             wolf_sound_variant,
             wolf_variant,
@@ -77,6 +83,14 @@ impl Registries {
 
     pub fn damage_types(&self) -> &BTreeMap<ResourceLocation, RegItem<DamageType>> {
         &self.damage_type
+    }
+
+    pub fn pig_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<PigVariant>> {
+        &self.pig_variants
+    }
+
+    pub fn trim_materials(&self) -> &BTreeMap<ResourceLocation, RegItem<TrimMaterial>> {
+        &self.trim_materials
     }
 
     pub fn trim_paterns(&self) -> &BTreeMap<ResourceLocation, RegItem<TrimPatern>> {
@@ -288,7 +302,27 @@ pub enum DamageEffects {
 
 // TODO: PaintingVariant
 
-// TODO: PigVariant
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct PigVariant {
+    pub model: Option<PigVariantModelType>,
+    pub spawn_conditions: SpawnPrioritySelectors,
+}
+
+impl Registry for PigVariant {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "pig_variant").unwrap()
+    }
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub enum PigVariantModelType {
+    #[serde(rename = "normal")]
+    Normal,
+    #[serde(rename = "cold")]
+    Cold,
+}
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -307,7 +341,10 @@ impl Registry for TrimMaterial {
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
-pub struct MaterialAssetGroup {}
+#[serde(transparent)]
+pub struct MaterialAssetGroup {
+    pub base: String,
+}
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
