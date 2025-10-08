@@ -264,6 +264,43 @@ pub enum DamageEffects {
     Freezing,
 }
 
+// TODO: Dialog
+
+// TODO: DimensionType
+
+// TODO: FrogVariant
+
+// TODO: PaintingVariant
+
+// TODO: PigVariant
+
+// TODO: TrimMaterial
+
+// TODO: TrimPattern
+
+// TODO: WolfSoundVariant
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct WolfVariant {
+    pub assets: AssetsInfo,
+    pub spawn_conditions: SpawnPrioritySelectors,
+}
+
+impl Registry for WolfVariant {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "wolf_variant").unwrap()
+    }
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct AssetsInfo {
+    pub wild: ClientAsset,
+    pub tame: ClientAsset,
+    pub angry: ClientAsset,
+}
+
 #[derive(Debug, PartialEq, Eq)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Biome {
