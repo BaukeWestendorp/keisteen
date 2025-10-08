@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 
 use crate::mc::resources::ResourceLocation;
+use crate::mc::text::TextComponent;
 use crate::mc::types::Identifier;
 use crate::mc::world::entity::SpawnPrioritySelectors;
 
@@ -14,14 +15,16 @@ const REGISTRIES_PATH: &str = "assets/registries/";
 pub struct Registries {
     banner_patterns: BTreeMap<ResourceLocation, RegItem<BannerPattern>>,
     cat_variants: BTreeMap<ResourceLocation, RegItem<CatVariant>>,
+    chat_types: BTreeMap<ResourceLocation, RegItem<ChatType>>,
 }
 
 impl Registries {
     pub fn load_from_assets() -> Self {
         let banner_patterns = BannerPattern::load_from_file();
         let cat_variants = CatVariant::load_from_file();
+        let chat_types = ChatType::load_from_file();
 
-        Self { banner_patterns, cat_variants }
+        Self { banner_patterns, cat_variants, chat_types }
     }
 
     pub fn banner_patterns(&self) -> &BTreeMap<ResourceLocation, RegItem<BannerPattern>> {
@@ -30,6 +33,10 @@ impl Registries {
 
     pub fn cat_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<CatVariant>> {
         &self.cat_variants
+    }
+
+    pub fn chat_types(&self) -> &BTreeMap<ResourceLocation, RegItem<ChatType>> {
+        &self.chat_types
     }
 }
 
@@ -92,6 +99,21 @@ pub struct CatVariant {
 impl Registry for CatVariant {
     fn identifier() -> Identifier {
         Identifier::new("minecraft", "cat_variant").unwrap()
+    }
+}
+
+#[derive(Debug, Default)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+pub struct ChatType {
+    pub parameters: Vec<String>,
+    pub style: Option<TextComponent>,
+    pub translation_key: Option<String>,
+}
+
+impl Registry for ChatType {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "chat_type").unwrap()
     }
 }
 
