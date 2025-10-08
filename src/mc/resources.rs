@@ -8,13 +8,13 @@ use crate::error::{KeisteenError, KeisteenResult};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ResourceLocation {
     namespace: String,
-    value: String,
+    path: String,
 }
 
 impl ResourceLocation {
-    pub fn new(namespace: impl Into<String>, value: impl Into<String>) -> KeisteenResult<Self> {
+    pub fn new(namespace: impl Into<String>, path: impl Into<String>) -> KeisteenResult<Self> {
         let namespace = namespace.into();
-        let value = value.into();
+        let path = path.into();
 
         // Validate namespace
         if !namespace.chars().all(|c| {
@@ -23,8 +23,8 @@ impl ResourceLocation {
             bail!("invalid namespace");
         }
 
-        // Validate value
-        if !value.chars().all(|c| {
+        // Validate path
+        if !path.chars().all(|c| {
             c.is_ascii_lowercase()
                 || c.is_ascii_digit()
                 || c == '.'
@@ -32,18 +32,18 @@ impl ResourceLocation {
                 || c == '_'
                 || c == '/'
         }) {
-            bail!("invalid value");
+            bail!("invalid path");
         }
 
-        Ok(Self { namespace, value })
+        Ok(Self { namespace, path })
     }
 
     pub fn namespace(&self) -> &str {
         &self.namespace
     }
 
-    pub fn value(&self) -> &str {
-        &self.value
+    pub fn path(&self) -> &str {
+        &self.path
     }
 }
 
@@ -53,14 +53,14 @@ impl str::FromStr for ResourceLocation {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut split = s.split(':');
         let namespace = split.next().wrap_err("missing namespace")?;
-        let value = split.next().wrap_err("missing separator")?;
-        Self::new(namespace.to_string(), value.to_string())
+        let path = split.next().wrap_err("missing separator")?;
+        Self::new(namespace.to_string(), path.to_string())
     }
 }
 
 impl fmt::Display for ResourceLocation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.namespace, self.value)
+        write!(f, "{}:{}", self.namespace, self.path)
     }
 }
 

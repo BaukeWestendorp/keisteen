@@ -4,7 +4,7 @@ use crate::mc::nbt::Nbt;
 use crate::mc::packet::KnownPack;
 use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::protocol::BytesMutExt;
-use crate::mc::registry::ResourceLocation;
+use crate::mc::resources::ResourceLocation;
 use crate::mc::types::Identifier;
 
 #[derive(Debug)]

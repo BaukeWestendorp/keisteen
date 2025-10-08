@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::net::SocketAddr;
+use std::ops::Deref;
 
 use bytes::BytesMut;
 use futures::{SinkExt, StreamExt};
@@ -14,7 +15,8 @@ use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::packet::client::config::RegistryDataEntry;
 use crate::mc::packet::codec::PacketCodec;
 use crate::mc::packet::{self, ClientboundRawPacket, KnownPack, ServerboundRawPacket};
-use crate::mc::registry::{Registry, ResourceLocation};
+use crate::mc::registries::{RegItem, Registry};
+use crate::mc::resources::ResourceLocation;
 use crate::mc::types::VarInt;
 use crate::server::Server;
 
@@ -168,14 +170,14 @@ impl Connection {
         }
 
         fn create_packet<R: Registry + serde::Serialize>(
-            registry_entries: &BTreeMap<ResourceLocation, R>,
+            registry_entries: &BTreeMap<ResourceLocation, RegItem<R>>,
         ) -> KeisteenResult<packet::client::config::RegistryData> {
             Ok(packet::client::config::RegistryData {
                 registry_id: R::identifier(),
                 entries: {
                     let mut entries = Vec::new();
                     for (identifier, entry) in registry_entries {
-                        let entry_nbt = nbt::to_nbt("", entry)?;
+                        let entry_nbt = nbt::to_nbt("", entry.deref())?;
                         entries.push(RegistryDataEntry {
                             entry_id: identifier.clone(),
                             data: Some(entry_nbt),

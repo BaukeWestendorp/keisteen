@@ -1,6 +1,10 @@
+pub mod core;
 pub mod nbt;
 pub mod packet;
 pub mod protocol;
-pub mod registry;
+pub mod registries;
+pub mod resources;
 pub mod text;
 pub mod types;
+pub mod util;
+pub mod world;

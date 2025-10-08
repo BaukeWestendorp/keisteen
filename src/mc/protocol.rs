@@ -4,7 +4,7 @@ use bytes::{Buf, BufMut, Bytes, BytesMut};
 use uuid::Uuid;
 
 use crate::mc::nbt::Nbt;
-use crate::mc::registry::ResourceLocation;
+use crate::mc::resources::ResourceLocation;
 use crate::mc::types::{Identifier, VarInt};
 
 pub trait BytesExt: Buf {

@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use tokio::net::TcpListener;
 use uuid::Uuid;
 
-use crate::mc::registry::Registries;
+use crate::mc::registries::Registries;
 use crate::server::connection::Connection;
 
 pub mod connection;

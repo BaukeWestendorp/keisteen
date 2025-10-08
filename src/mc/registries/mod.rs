@@ -1,34 +1,44 @@
 use std::collections::BTreeMap;
 use std::fs;
 
-pub use res_loc::*;
-
+use crate::mc::resources::ResourceLocation;
 use crate::mc::types::Identifier;
+use crate::mc::world::entity::SpawnPrioritySelectors;
 
-pub mod res_loc;
+pub use item::*;
+
+mod item;
 
 const REGISTRIES_PATH: &str = "assets/registries/";
 
 pub struct Registries {
-    banner_patterns: BTreeMap<ResourceLocation, BannerPattern>,
+    banner_patterns: BTreeMap<ResourceLocation, RegItem<BannerPattern>>,
+    cat_variants: BTreeMap<ResourceLocation, RegItem<CatVariant>>,
 }
 
 impl Registries {
     pub fn load_from_assets() -> Self {
         let banner_patterns = BannerPattern::load_from_file();
+        let cat_variants = CatVariant::load_from_file();
 
-        Self { banner_patterns }
+        Self { banner_patterns, cat_variants }
     }
 
-    pub fn banner_patterns(&self) -> &BTreeMap<ResourceLocation, BannerPattern> {
+    pub fn banner_patterns(&self) -> &BTreeMap<ResourceLocation, RegItem<BannerPattern>> {
         &self.banner_patterns
+    }
+
+    pub fn cat_variants(&self) -> &BTreeMap<ResourceLocation, RegItem<CatVariant>> {
+        &self.cat_variants
     }
 }
 
-pub trait Registry: Sized + serde::de::DeserializeOwned {
+pub trait Registry: Sized + serde::Serialize + for<'de> serde::Deserialize<'de> {
     fn identifier() -> Identifier;
 
-    fn load_from_file() -> BTreeMap<ResourceLocation, Self> {
+    fn load_from_file() -> BTreeMap<ResourceLocation, RegItem<Self>> {
+        log::trace!("loading registry {}", Self::identifier());
+
         let registry_dir = std::path::Path::new(REGISTRIES_PATH)
             .join(Self::identifier().namespace())
             .join(Self::identifier().value())
@@ -51,7 +61,7 @@ pub trait Registry: Sized + serde::de::DeserializeOwned {
                 let asset_id = format!("{}:{}", Self::identifier().namespace(), file_stem);
                 let res_loc: ResourceLocation =
                     asset_id.parse().expect("invalid resource location");
-                map.insert(res_loc, value);
+                map.insert(res_loc, RegItem::new(value));
             }
         }
 
@@ -69,5 +79,42 @@ pub struct BannerPattern {
 impl Registry for BannerPattern {
     fn identifier() -> Identifier {
         Identifier::new("minecraft", "banner_pattern").unwrap()
+    }
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct CatVariant {
+    pub asset_id: String,
+    pub spawn_conditions: SpawnPrioritySelectors,
+}
+
+impl Registry for CatVariant {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "cat_variant").unwrap()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct Biome {
+    // TODO: Implement
+}
+
+impl Registry for Biome {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "worldgen/biome").unwrap()
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct Structure {
+    // TODO: Implement
+}
+
+impl Registry for Structure {
+    fn identifier() -> Identifier {
+        Identifier::new("minecraft", "worldgen/structure").unwrap()
     }
 }
