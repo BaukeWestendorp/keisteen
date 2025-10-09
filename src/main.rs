@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use crate::mc::types::VarInt;
+use crate::mc::network::varint::VarInt;
 use crate::server::Server;
 
 pub mod error;

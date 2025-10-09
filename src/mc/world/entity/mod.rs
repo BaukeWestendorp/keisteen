@@ -1,3 +1,3 @@
-pub use variant::*;
-
-mod variant;
+pub mod animal;
+pub mod decoration;
+pub mod variant;

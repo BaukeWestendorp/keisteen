@@ -1,7 +1,7 @@
 use bytes::{BufMut, BytesMut};
 
+use crate::mc::network::protocol::BytesMutExt;
 use crate::mc::packet::client::ClientboundPacket;
-use crate::mc::protocol::BytesMutExt;
 
 #[derive(Debug)]
 pub struct StatusResponse<'a> {

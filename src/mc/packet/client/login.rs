@@ -1,7 +1,7 @@
 use bytes::BytesMut;
 
+use crate::mc::network::protocol::BytesMutExt;
 use crate::mc::packet::client::ClientboundPacket;
-use crate::mc::protocol::BytesMutExt;
 use crate::server::game_profile::{GameProfile, GameProfileProperty};
 
 #[derive(Debug)]

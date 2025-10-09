@@ -1,6 +1,6 @@
 use bytes::{Bytes, BytesMut};
 
-use crate::mc::types::VarInt;
+use crate::mc::network::varint::VarInt;
 
 pub mod client;
 pub mod codec;

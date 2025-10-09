@@ -1,11 +1,13 @@
+pub mod chat;
 use std::io;
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use uuid::Uuid;
 
 use crate::mc::nbt::Nbt;
+use crate::mc::network::varint::VarInt;
 use crate::mc::resources::ResourceLocation;
-use crate::mc::types::{Identifier, VarInt};
+use crate::mc::types::Identifier;
 
 pub trait BytesExt: Buf {
     fn try_get_bool(&mut self) -> io::Result<bool>;

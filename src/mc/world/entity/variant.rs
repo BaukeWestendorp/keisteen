@@ -1,5 +1,6 @@
 use crate::mc::core::HolderSet;
-use crate::mc::registries::{Biome, Structure};
+use crate::mc::world::level::biome::Biome;
+use crate::mc::world::level::levelgen::structure::Structure;
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]

@@ -1,7 +1,7 @@
 pub mod core;
 pub mod nbt;
+pub mod network;
 pub mod packet;
-pub mod protocol;
 pub mod registries;
 pub mod resources;
 pub mod sounds;

@@ -2,9 +2,9 @@ use bytes::Bytes;
 use uuid::Uuid;
 
 use crate::error::KeisteenResult;
+use crate::mc::network::protocol::BytesExt;
 use crate::mc::packet::server::ServerboundPacket;
 use crate::mc::packet::{self, ServerboundRawPacket};
-use crate::mc::protocol::BytesExt;
 use crate::server::connection::{Connection, ConnectionState};
 use crate::server::game_profile::GameProfile;
 

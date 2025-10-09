@@ -1,10 +1,10 @@
 use bytes::{Buf, Bytes};
 
 use crate::error::KeisteenResult;
+use crate::mc::network::protocol::BytesExt;
+use crate::mc::network::varint::VarInt;
 use crate::mc::packet::ServerboundRawPacket;
 use crate::mc::packet::server::ServerboundPacket;
-use crate::mc::protocol::BytesExt;
-use crate::mc::types::VarInt;
 use crate::server::connection::{Connection, ConnectionState};
 
 #[derive(Debug)]

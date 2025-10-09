@@ -2,9 +2,9 @@ use bytes::{Buf, BufMut, BytesMut};
 use tokio::io;
 use tokio_util::codec::{Decoder, Encoder};
 
+use crate::mc::network::protocol::{BytesExt, BytesMutExt};
+use crate::mc::network::varint::VarInt;
 use crate::mc::packet::{ClientboundRawPacket, ServerboundRawPacket};
-use crate::mc::protocol::{BytesExt, BytesMutExt};
-use crate::mc::types::VarInt;
 
 const MAX_PACKET_SIZE: usize = 2097151; // 2^21 - 1
 

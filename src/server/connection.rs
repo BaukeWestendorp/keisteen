@@ -11,13 +11,13 @@ use tokio_util::codec::{FramedRead, FramedWrite};
 
 use crate::error::KeisteenResult;
 use crate::mc::nbt;
+use crate::mc::network::varint::VarInt;
 use crate::mc::packet::client::ClientboundPacket;
 use crate::mc::packet::client::config::RegistryDataEntry;
 use crate::mc::packet::codec::PacketCodec;
 use crate::mc::packet::{self, ClientboundRawPacket, KnownPack, ServerboundRawPacket};
 use crate::mc::registries::{RegItem, Registry};
 use crate::mc::resources::ResourceLocation;
-use crate::mc::types::VarInt;
 use crate::server::Server;
 
 pub struct Connection {
