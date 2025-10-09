@@ -46,9 +46,7 @@ pub struct FinishConfiguration;
 impl ClientboundPacket for FinishConfiguration {
     const PACKET_ID: i32 = 0x03;
 
-    fn encode_data(self, _bytes: &mut BytesMut) {
-        todo!()
-    }
+    fn encode_data(self, _bytes: &mut BytesMut) {}
 }
 
 #[derive(Debug)]

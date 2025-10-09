@@ -4,9 +4,8 @@ pub trait Predicate<T> {
 
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
+#[serde(tag = "type")]
 pub enum IntProvider {
-    #[serde(rename = "minecraft:constant")]
-    Constant { value: i32 },
     #[serde(rename = "minecraft:uniform")]
     Uniform { min_inclusive: i32, max_inclusive: i32 },
     #[serde(rename = "minecraft:biased_to_bottom")]
@@ -17,6 +16,8 @@ pub enum IntProvider {
     ClampedNormal { mean: f64, deviation: f64, min_inclusive: i32, max_inclusive: i32 },
     #[serde(rename = "minecraft:weighted_list")]
     WeigthedList(Vec<WeightedEntry<i32>>),
+    #[serde(untagged)]
+    Constant(i32),
 }
 
 #[derive(Debug)]

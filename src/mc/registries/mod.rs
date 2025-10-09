@@ -202,10 +202,17 @@ impl Registry for CatVariant {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
-#[serde(default)]
 pub struct ChatType {
+    pub chat: ChatTypeDecoration,
+    pub narration: ChatTypeDecoration,
+}
+
+#[derive(Debug)]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct ChatTypeDecoration {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub parameters: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub style: Option<TextComponent>,
@@ -223,9 +230,8 @@ impl Registry for ChatType {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct ChickenVariant {
     pub asset_id: ClientAsset,
-    #[serde(default)]
-    pub model: String,
-    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
     pub spawn_conditions: SpawnPrioritySelectors,
 }
 
@@ -249,9 +255,8 @@ pub enum ChickenModel {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct CowVariant {
     pub asset_id: ClientAsset,
-    #[serde(default)]
-    pub model: String,
-    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
     pub spawn_conditions: SpawnPrioritySelectors,
 }
 
@@ -354,22 +359,18 @@ pub struct DimensionType {
     pub ambient_light: f32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cloud_height: Option<i32>,
-    #[serde(flatten)]
-    pub monster_settings: Option<MonsterSettings>,
+
+    // monster_settings
+    pub piglin_safe: bool,
+    pub has_raids: bool,
+    pub monster_spawn_light_level: IntProvider,
+    pub monster_spawn_block_light_limit: i32,
 }
 
 impl Registry for DimensionType {
     fn identifier() -> Identifier {
         Identifier::new("minecraft", "dimension_type").unwrap()
     }
-}
-
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub struct MonsterSettings {
-    pub piglin_safe: bool,
-    pub has_raids: bool,
-    pub monster_spawn_light_level: IntProvider,
-    pub monster_spawn_block_light_limit: i32,
 }
 
 #[derive(Debug)]
@@ -406,6 +407,7 @@ impl Registry for PaintingVariant {
 #[derive(Debug)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct PigVariant {
+    pub asset_id: ResourceLocation,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<PigVariantModelType>,
     pub spawn_conditions: SpawnPrioritySelectors,

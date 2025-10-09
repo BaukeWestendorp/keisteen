@@ -2,10 +2,10 @@ use bytes::{Buf, Bytes};
 
 use crate::error::KeisteenResult;
 use crate::mc::packet::server::ServerboundPacket;
-use crate::mc::packet::{KnownPack, ServerboundRawPacket};
+use crate::mc::packet::{self, KnownPack, ServerboundRawPacket};
 use crate::mc::protocol::BytesExt;
 use crate::mc::types::{Identifier, VarInt};
-use crate::server::connection::Connection;
+use crate::server::connection::{Connection, ConnectionState};
 
 #[derive(Debug)]
 pub struct ClientInformation {
@@ -86,11 +86,15 @@ impl ServerboundPacket for AcknowledgeFinishConfiguration {
     const PACKET_ID: i32 = 0x03;
 
     fn decode_data(_bytes: Bytes) -> KeisteenResult<Self> {
-        todo!()
+        Ok(Self)
     }
 
-    async fn handle(self, _connection: &mut Connection) -> KeisteenResult<()> {
-        todo!()
+    async fn handle(self, connection: &mut Connection) -> KeisteenResult<()> {
+        log::trace!("<<< {self:?}");
+
+        connection.set_state(ConnectionState::Play);
+
+        Ok(())
     }
 }
 
@@ -163,6 +167,8 @@ impl ServerboundPacket for KnownPacks {
         log::trace!("<<< {self:?}");
 
         connection.send_registry_data().await?;
+
+        connection.send_packet(packet::client::config::FinishConfiguration).await?;
 
         Ok(())
     }

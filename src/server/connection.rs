@@ -107,6 +107,9 @@ impl Connection {
             ConnectionState::Transfer => {
                 todo!("handling packets in Transfer state is not implemented yet");
             }
+            ConnectionState::Play => {
+                todo!("handling packets in Play state is not implemented yet");
+            }
         }
 
         Ok(())
@@ -162,7 +165,7 @@ impl Connection {
             create_packet(registries.trim_patterns())?,
             create_packet(registries.wolf_sound_variants())?,
             create_packet(registries.wolf_variants())?,
-            // create_packet(registries.biomes())?,
+            // TODO: create_packet(registries.biomes())?,
         ];
 
         for packet in packets {
@@ -202,4 +205,5 @@ pub enum ConnectionState {
     Login,
     Config,
     Transfer,
+    Play,
 }

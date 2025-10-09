@@ -7,10 +7,12 @@ pub struct TextComponent {
     color: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     italic: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    translate: Option<String>,
 }
 
 impl TextComponent {
     pub fn text(text: impl Into<String>) -> Self {
-        Self { text: Some(text.into()), color: None, italic: None }
+        Self { text: Some(text.into()), color: None, italic: None, translate: None }
     }
 }
